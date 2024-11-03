@@ -3638,6 +3638,1669 @@ Edit Resources>views>admin>brand_edit.blade.php:
 
 
 
+10. => Admin Category Page:
+---------------------------
+A) Create Model & Migration
+Command: php artisan make:model Category -m
+
+Edit Database>migration>2024_10_19_035812_create_categories_table.php:
+Schema::create('categories', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('slug')->unique();
+            $table->string('image')->nullable();
+            $table->string('parent_id')->nullable();
+            $table->timestamps();
+        });
+Then, Command: php artisan migrate
+
+
+Edit app>Models>Category.php:
+protected $guarded = [];
+
+
+B) Edit app>http>controller>AdminController.php:
+// Categories
+    public function categories()
+    {
+        $categories = Category::orderBy('id', 'DESC')->paginate(10);
+        return view('admin.categories', compact('categories'));
+    }
+
+
+
+C) Edit Route>web.php:
+Route::get('/admin/categories', [AdminController::class, 'categories'])->name('admin.categories');
+
+
+
+D) Edit Resoruces>views>layouts>admin.blade.php:
+<li class="menu-item has-children">
+                                    <a href="javascript:void(0);" class="menu-item-button">
+                                        <div class="icon"><i class="icon-layers"></i></div>
+                                        <div class="text">Category</div>
+                                    </a>
+                                    <ul class="sub-menu">
+                                        <li class="sub-menu-item">
+                                            <a href="add-brand.html" class="">
+                                                <div class="text">New Category</div>
+                                            </a>
+                                        </li>
+                                        <li class="sub-menu-item">
+                                            <a href="{{ route('admin.categories') }}" class="">
+                                                <div class="text">Categories</div>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+
+
+
+E) Create View: categories.blade.php
+Edit Resources>views>admin>categories.blade.php:
+@extends('layouts.admin')
+
+@section('content')
+    <div class="main-content-inner">
+        <div class="main-content-wrap">
+            <div class="flex items-center flex-wrap justify-between gap20 mb-27">
+                <h3>Categories</h3>
+                <ul class="breadcrumbs flex items-center flex-wrap justify-start gap10">
+                    <li>
+                        <a href="{{ route('admin.index') }}">
+                            <div class="text-tiny">Dashboard</div>
+                        </a>
+                    </li>
+                    <li>
+                        <i class="icon-chevron-right"></i>
+                    </li>
+                    <li>
+                        <div class="text-tiny">Categories</div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="wg-box">
+                <div class="flex items-center justify-between gap10 flex-wrap">
+                    <div class="wg-filter flex-grow">
+                        <form class="form-search">
+                            <fieldset class="name">
+                                <input type="text" placeholder="Search here..." class="" name="name"
+                                    tabindex="2" value="" aria-required="true" required="">
+                            </fieldset>
+                            <div class="button-submit">
+                                <button class="" type="submit"><i class="icon-search"></i></button>
+                            </div>
+                        </form>
+                    </div>
+                    <a class="tf-button style-1 w208" href="#"><i
+                            class="icon-plus"></i>Add new</a>
+                </div>
+                <div class="wg-table table-all-user">
+                    <div class="table-responsive">
+                        @include('_message')
+
+                        <table class="table table-striped table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Slug</th>
+                                    <th>Image</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($categories as $category)
+                                    <tr>
+                                        <td>{{ $category->id }}</td>
+                                        <td class="pname">
+                                            <div class="name">
+                                                <a href="#" class="body-title-2">{{ $category->name }}</a>
+                                            </div>
+                                        </td>
+                                        <td>{{ $category->slug }}</td>
+                                        <td>
+                                            <div class="image">
+                                                <img src="{{ asset($category->image) }}" alt="{{ $category->name }}"
+                                                    class="image">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="list-icon-function">
+                                                <a href="#">
+                                                    <div class="item edit">
+                                                        <i class="icon-edit-3"></i>
+                                                    </div>
+                                                </a>
+                                                <form action="#" method="POST">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <div class="item text-danger delete">
+                                                        <i class="icon-trash-2"></i>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="flex items-center justify-between flex-wrap gap10 wgp-pagination">
+                        {{ $categories->links('pagination::bootstrap-5') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@push('scripts')
+    <script>
+        $(function() {
+            $('.delete').on('click', function(e) {
+                e.preventDefault();
+                let form = $(this).closest('form');
+                swal({
+                    title: 'Are you sure?',
+                    text: 'You want to delete this record?',
+                    type: "warning",
+                    buttons: ['No', 'Yes'],
+                    confirmButtonColor: '#dc3545'
+                }).then(function(result) {
+                    if (result) {
+                        form.submit();
+                    }
+                });
+
+            });
+        });
+    </script>
+@endpush
+
+
+
+
+
+
+
+
+11. => Admin Create New Category:
+---------------------------------
+11. A) Edit app>http>controller>AdminController.php:
+// Categroy Add
+    public function categoryCreate()
+    {
+        return view('admin.category_add');
+    }
+
+    // Category Store
+    public function categoryStore(Request $request)
+    {
+        $request->validate([
+            'name' => 'required',
+            'slug' => 'required|unique:categoires,slug', // Corrected 'brand' to 'brands'
+            'image' => 'nullable|image|mimes:png,jpg,jpeg|max:2048', // Nullable image validation
+        ]);
+
+        // Initialize an empty variable for the image path
+        $saveUrl = null;
+
+        if ($request->file('image')) {
+            $manager = new ImageManager(new Driver());
+            $imgName = hexdec(uniqid()) . '.' . $request->file('image')->getClientOriginalExtension();
+            $img = $manager->read($request->file('image'));
+            $img = $img->resize(124, 124);
+
+            $img->toJpeg(80)->save(base_path('public/uploads/categories/' . $imgName));
+            $saveUrl = 'uploads/categories/' . $imgName; // Assign image path
+        }
+
+        // Insert into database, using the image path if available
+        Category::insert([
+            'name' => $request->name,
+            'slug' => Str::slug($request->name),
+            'image' => $saveUrl, // Will be null if no image is uploaded
+        ]);
+
+        return redirect()->route('admin.categories')->with('success', 'Category has been added successfully!');
+    }
+
+
+
+11. B) Create Route>web.php;
+ Route::get('/admin/category/create', [AdminController::class, 'categoryCreate'])->name('admin.category.create');
+    Route::post('/admin/category/store', [AdminController::class, 'categoryStore'])->name('admin.category.store');
+
+
+11. C) Edit Resoruces>views>layouts>admin.blade.php:
+<li class="menu-item has-children">
+                                    <a href="javascript:void(0);" class="menu-item-button">
+                                        <div class="icon"><i class="icon-layers"></i></div>
+                                        <div class="text">Category</div>
+                                    </a>
+                                    <ul class="sub-menu">
+                                        <li class="sub-menu-item">
+                                            <a href="{{ route('admin.category.create') }}" class="">
+                                                <div class="text">New Category</div>
+                                            </a>
+                                        </li>
+                                        <li class="sub-menu-item">
+                                            <a href="{{ route('admin.categories') }}" class="">
+                                                <div class="text">Categories</div>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+
+
+
+11. D) Edit Resoruces>views>admin>categories.blade.php:
+<a class="tf-button style-1 w208" href="{{ route('admin.category.create') }}"><i class="icon-plus"></i>Add new</a>
+
+
+
+11. E) Create View: category_add.blade.php:
+Edit Resources>views>admin>category_add.blade.php:
+@extends('layouts.admin')
+
+@section('content')
+    <div class="main-content-inner">
+        <div class="main-content-wrap">
+            <div class="flex items-center flex-wrap justify-between gap20 mb-27">
+                <h3>Category infomation</h3>
+                <ul class="breadcrumbs flex items-center flex-wrap justify-start gap10">
+                    <li>
+                        <a href="{{ route('admin.index') }}">
+                            <div class="text-tiny">Dashboard</div>
+                        </a>
+                    </li>
+                    <li>
+                        <i class="icon-chevron-right"></i>
+                    </li>
+                    <li>
+                        <a href="{{ route('admin.categories') }}">
+                            <div class="text-tiny">Categories</div>
+                        </a>
+                    </li>
+                    <li>
+                        <i class="icon-chevron-right"></i>
+                    </li>
+                    <li>
+                        <div class="text-tiny">New Category</div>
+                    </li>
+                </ul>
+            </div>
+            <!-- new-category -->
+            <div class="wg-box">
+                <form class="form-new-product form-style-1" action="{{ route('admin.category.store') }}" method="POST"
+                    enctype="multipart/form-data">
+                    @csrf
+                    <fieldset class="name">
+                        <div class="body-title">Category Name <span class="tf-color-1">*</span></div>
+                        <input class="flex-grow" type="text" placeholder="Category Name" name="name" tabindex="0"
+                            value="{{ old('name') }}" aria-required="true" required="">
+                    </fieldset>
+                    @error('name')
+                        <span class="alert alter-danger text-center">{{ $message }}</span>
+                    @enderror
+                    <fieldset class="name">
+                        <div class="body-title">Category Slug <span class="tf-color-1">*</span></div>
+                        <input class="flex-grow" type="text" placeholder="Category Slug" name="slug" tabindex="0"
+                            value="{{ old('slug') }}" aria-required="true" required="">
+                    </fieldset>
+                    @error('slug')
+                        <span class="alert alter-danger text-center">{{ $message }}</span>
+                    @enderror
+
+                    <fieldset>
+                        <div class="body-title">Upload images <span class="tf-color-1">*</span>
+                        </div>
+                        <div class="upload-image flex-grow">
+                            <div class="item" id="imgpreview" style="display:none">
+                                <img src="upload-1.html" class="effect8" alt="">
+                            </div>
+                            <div id="upload-file" class="item up-load">
+                                <label class="uploadfile" for="myFile">
+                                    <span class="icon">
+                                        <i class="icon-upload-cloud"></i>
+                                    </span>
+                                    <span class="body-text">Drop your images here or select <span class="tf-color">click to
+                                            browse</span></span>
+                                    <input type="file" id="myFile" name="image" accept="image/*">
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
+                    @error('image')
+                        <span class="alert alter-danger text-center">{{ $message }}</span>
+                    @enderror
+
+                    <div class="bot">
+                        <div></div>
+                        <button class="tf-button w208" type="submit">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@push('scripts')
+<script>
+    $(function() {
+        $("#myFile").on("change", function(e) {
+            const [file] = this.files;
+            if (file) {
+                $("#imgpreview img").attr('src', URL.createObjectURL(file));
+                $("#imgpreview").show();
+            }
+        });
+
+        $("input[name='name']").on("change", function() {
+            $("input[name='slug']").val(StringToSlug($(this).val()));
+        });
+
+        function StringToSlug(Text) {
+            return Text.toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')  // Replace non-alphanumeric characters with '-'
+                .replace(/^-+|-+$/g, '');     // Remove leading and trailing dashes
+        }
+    });
+</script>
+@endpush
+
+
+
+
+
+
+
+12. => Admin Edit Category:
+---------------------------
+12. A) Edit Resources>views>admin>caregories.blade.php:
+<a href="{{ route('admin.category.edit', ['id' => $category->id]) }}">
+
+
+12. B) Edit app>http>controller>AdminController.php:
+// Category Edit
+    public function categoryEdit($id)
+    {
+        $category = Category::find($id);
+        return view('admin.category_edit', compact('category'));
+    }
+
+    // Category Update
+    public function categoryUpdate(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required',
+            'slug' => 'required|unique:categories,slug,' . $id, // Allowing the current brand's slug
+            'image' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+        ]);
+
+        $category = Category::findOrFail($id);
+
+        if ($request->file('image')) {
+            $manager = new ImageManager(new Driver());
+            $imgName = hexdec(uniqid()) . '.' . $request->file('image')->getClientOriginalExtension();
+            $img = $manager->read($request->file('image'));
+            $img = $img->resize(124, 124);
+
+            $img->toJpeg(80)->save(base_path('public/uploads/categories/' . $imgName));
+            $saveUrl = 'uploads/categories/' . $imgName;
+
+            // Optionally delete the old image if it exists
+            if ($category->image) {
+                @unlink(base_path('public/' . $category->image));
+            }
+
+            $category->update([
+                'name' => $request->name,
+                'slug' => Str::slug($request->name),
+                'image' => $saveUrl,
+            ]);
+        } else {
+            $category->update([
+                'name' => $request->name,
+                'slug' => Str::slug($request->name),
+            ]);
+        }
+
+        return redirect()->route('admin.categories')->with('success', 'Category has been updated successfully!');
+    }
+
+
+
+
+12. C) Create Route>web.php:
+Route::get('/admin/category/edit/{id}', [AdminController::class, 'categoryEdit'])->name('admin.category.edit');
+    Route::post('/admin/category/update/{id}', [AdminController::class, 'categoryUpdate'])->name('admin.category.update');
+
+
+
+
+12. D) Create View: categroy_edit.blade.php
+Edit Resources>views>admin>category_edit.blade.php:
+@extends('layouts.admin')
+
+@section('content')
+    <div class="main-content-inner">
+        <div class="main-content-wrap">
+            <div class="flex items-center flex-wrap justify-between gap20 mb-27">
+                <h3>Category information</h3>
+                <ul class="breadcrumbs flex items-center flex-wrap justify-start gap10">
+                    <li>
+                        <a href="{{ route('admin.index') }}">
+                            <div class="text-tiny">Dashboard</div>
+                        </a>
+                    </li>
+                    <li>
+                        <i class="icon-chevron-right"></i>
+                    </li>
+                    <li>
+                        <a href="{{ route('admin.categories') }}">
+                            <div class="text-tiny">Categories</div>
+                        </a>
+                    </li>
+                    <li>
+                        <i class="icon-chevron-right"></i>
+                    </li>
+                    <li>
+                        <div class="text-tiny">Edit Category</div>
+                    </li>
+                </ul>
+            </div>
+            <!-- Edit Category Form -->
+            <div class="wg-box">
+                <form class="form-new-product form-style-1" action="{{ route('admin.category.update', ['id' => $category->id]) }}"
+                    method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <fieldset class="name">
+                        <div class="body-title">Category Name <span class="tf-color-1">*</span></div>
+                        <input class="flex-grow" type="text" placeholder="Category Name" name="name" tabindex="0"
+                            value="{{ $category->name }}" aria-required="true" required>
+                    </fieldset>
+                    @error('name')
+                        <span class="alert alert-danger">{{ $message }}</span>
+                    @enderror
+                    <fieldset class="name">
+                        <div class="body-title">Category Slug <span class="tf-color-1">*</span></div>
+                        <input class="flex-grow" type="text" placeholder="Category Slug" name="slug" tabindex="0"
+                            value="{{ $category->slug }}" aria-required="true" required>
+                    </fieldset>
+                    @error('slug')
+                        <span class="alert alter-danger text-center">{{ $message }}</span>
+                    @enderror
+                    <fieldset>
+                        <div class="body-title">Upload images <span class="tf-color-1">*</span></div>
+                        <div class="upload-image flex-grow">
+                            @if ($category->image)
+                                <div class="item" id="imgpreview">
+                                    <img src="{{ asset($category->image) }}" class="effect8" alt="">
+                                </div>
+                            @endif
+                            <div id="upload-file" class="item up-load">
+                                <label class="uploadfile" for="myFile">
+                                    <span class="icon">
+                                        <i class="icon-upload-cloud"></i>
+                                    </span>
+                                    <span class="body-text">Drop your images here or select <span class="tf-color">click to
+                                            browse</span></span>
+                                    <input type="file" id="myFile" name="image" accept="image/*">
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
+                    @error('image')
+                        <span class="alert alter-danger text-center">{{ $message }}</span>
+                    @enderror
+
+                    <div class="bot">
+                        <div></div>
+                        <button class="tf-button w208" type="submit">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@push('scripts')
+    <script>
+        $(function() {
+            $("#myFile").on("change", function(e) {
+                const [file] = this.files;
+                if (file) {
+                    $("#imgpreview img").attr('src', URL.createObjectURL(file));
+                    $("#imgpreview").show();
+                }
+            });
+
+            $("input[name='name']").on("change", function() {
+                $("input[name='slug']").val(StringToSlug($(this).val()));
+            });
+
+            function StringToSlug(Text) {
+                return Text.toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '');
+            }
+        });
+    </script>
+@endpush
+
+
+
+
+
+
+
+
+
+
+
+
+13. =>  Admin Delete Category:
+------------------------------
+13. A) Edit app>http>controller>AdminController.php:
+// Category Delete
+    public function categoryDelete($id)
+    {
+        $category = Category::find($id);
+
+        // Check if the image exists and delete it
+        if ($category->image && File::exists(public_path($category->image))) {
+            File::delete(public_path($category->image));
+        }
+
+        // Delete the brand from the database
+        $category->delete();
+        return redirect()->route('admin.categories')->with('success', 'Category Deleted!');
+    }
+
+
+
+
+13. B) Route>web.php:
+Route::delete('/admin/category/delete/{id}', [AdminController::class, 'categoryDelete'])->name('admin.category.delete');
+
+
+
+
+13. C) Edit Resources>views>admin>categories.blade.php:
+<form action="{{ route('admin.category.delete', ['id' => $category->id]) }}" method="POST">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <div class="item text-danger delete">
+                                                        <i class="icon-trash-2"></i>
+                                                    </div>
+                                                </form>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+14. => Admin Product Page(14-17 complete product crud):
+-------------------------------------------------------
+14. A) Create Migration, Model, Controller
+Command: php artisan make:model Product -mcr
+
+14. A. i) Edit Database>Migration>2024_10_28_041929_create_products_table.php:
+ Schema::create('products', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('slug')->unique();
+            $table->string('short_description')->nullable();
+            $table->text('description');
+            $table->decimal('regular_price', 8, 2);
+            $table->decimal('sale_price', 8, 2)->nullable();
+            $table->string('SKU');
+            $table->enum('stock_status', ['instock', 'outofstock']);
+            $table->boolean('features')->default(false);
+            $table->unsignedInteger('quantity')->default(10);
+            $table->string('image')->nullable();
+            $table->text('images')->nullable();
+            $table->foreignId('category_id')->nullable()->constrained('categories')->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreignId('brand_id')->nullable()->constrained('brands')->cascadeOnUpdate()->restrictOnDelete();
+            $table->timestamps();
+        });
+
+Then, Command: php artisan migrate
+
+
+
+
+14. A. ii) Edit app>Models>Product.php:
+protected $guarded = [];
+// Category Table Relation
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
+
+    // Brand Table Relation
+    public function brand()
+    {
+        return $this->belongsTo(Brand::class, 'brand_id');
+    }
+
+
+
+
+14. A. iii) Edit app>Models>Category.php:
+// Product Table Relation
+    public function products(){
+        return $this->hasMany(Product::class);
+    }
+
+
+
+14. A. iv) Edit app>Models>Brand.php:
+// Product Table Relation
+    public function products(){
+        return $this->hasMany(Product::class);
+    }
+
+
+14. A. v) Edit app>http>controller>ProductController.php:
+public function index()
+    {
+        // Index
+        $products = Product::orderBy('created_at', 'DESC')->paginate(10);
+        return view('admin.products', compact('products'));
+    }
+
+
+
+14. B) Create Route>web.php:
+// Products
+    Route::resource('/admin/products', ProductController::class);
+
+
+
+
+14. B. i) Edit Resources>views>layouts>admin.blade.php:
+<li class="sub-menu-item">
+                                            <a href="{{ route('products.index') }}" class="">
+                                                <div class="text">Products</div>
+                                            </a>
+                                        </li>
+
+
+
+
+14. B. ii) Create View: products.blade.php
+Edit Resources>views>admin>products.blade.php:
+@extends('layouts.admin')
+
+@section('content')
+    <div class="main-content-inner">
+        <div class="main-content-wrap">
+            <div class="flex items-center flex-wrap justify-between gap20 mb-27">
+                <h3>All Products</h3>
+                <ul class="breadcrumbs flex items-center flex-wrap justify-start gap10">
+                    <li>
+                        <a href="{{ route('admin.index') }}">
+                            <div class="text-tiny">Dashboard</div>
+                        </a>
+                    </li>
+                    <li>
+                        <i class="icon-chevron-right"></i>
+                    </li>
+                    <li>
+                        <div class="text-tiny">All Products</div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="wg-box">
+                <div class="flex items-center justify-between gap10 flex-wrap">
+                    <div class="wg-filter flex-grow">
+                        <form class="form-search">
+                            <fieldset class="name">
+                                <input type="text" placeholder="Search here..." class="" name="name"
+                                    tabindex="2" value="" aria-required="true" required="">
+                            </fieldset>
+                            <div class="button-submit">
+                                <button class="" type="submit"><i class="icon-search"></i></button>
+                            </div>
+                        </form>
+                    </div>
+                    <a class="tf-button style-1 w208" href="add-product.html"><i class="icon-plus"></i>Add new</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>SalePrice</th>
+                                <th>SKU</th>
+                                <th>Category</th>
+                                <th>Brand</th>
+                                <th>Featured</th>
+                                <th>Stock</th>
+                                <th>Quantity</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($products as $product)
+                                <tr>
+                                    <td>{{ $product->id }}</td>
+                                    <td class="pname">
+                                        <div class="image">
+                                            <img src="{{ asset($product->image) }}" alt="{{ $product->name }}"
+                                                class="image">
+                                        </div>
+                                        <div class="name">
+                                            <a href="#" class="body-title-2">{{ $product->name }}</a>
+                                            <div class="text-tiny mt-3">{{ $product->slug }}</div>
+                                        </div>
+                                    </td>
+                                    <td>{{ $product->regular_price }}</td>
+                                    <td>{{ $product->sale_price }}</td>
+                                    <td>{{ $product->SKU }}</td>
+                                    <td>{{ $product->category->name }}</td>
+                                    <td>{{ $product->brand->name }}</td>
+                                    <td>{{ $product->featured == 0 ? 'No' : 'Yes' }}</td>
+                                    <td>{{ $product->stoct_status }}</td>
+                                    <td>{{ $product->quantity }}</td>
+                                    <td>
+                                        <div class="list-icon-function">
+                                            <a href="#" target="_blank">
+                                                <div class="item eye">
+                                                    <i class="icon-eye"></i>
+                                                </div>
+                                            </a>
+                                            <a href="#">
+                                                <div class="item edit">
+                                                    <i class="icon-edit-3"></i>
+                                                </div>
+                                            </a>
+                                            <form action="#" method="POST">
+                                                <div class="item text-danger delete">
+                                                    <i class="icon-trash-2"></i>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="divider"></div>
+                <div class="flex items-center justify-between flex-wrap gap10 wgp-pagination">
+
+                    {{ $products->links('pagination::bootstrap-5') }}
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+15. => Admin Create New Product:
+--------------------------------
+15. A) Edit app>http>controller>ProductController.php:
+public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required',
+            'slug' => 'required|unique:products,slug',
+            'short_description' => 'required',
+            'description' => 'required',
+            'regular_price' => 'required|numeric',
+            'sale_price' => 'nullable|numeric',
+            'SKU' => 'required',
+            'stock_status' => 'required|in:instock,outofstock',
+            'features' => 'required',
+            'quantity' => 'required|integer|min:0',
+            'image' => 'nullable|image|mimes:png,jpg,jpeg|max:2048', // Primary image
+            'images.*' => 'nullable|image|mimes:png,jpg,jpeg|max:2048', // Multiple images
+            'category_id' => 'required',
+            'brand_id' => 'required',
+        ]);
+
+        $saveUrl = null;
+        $imagePaths = []; // Array to store paths of multiple images
+
+        // Primary Image (Single File)
+        if ($request->file('image')) {
+            $manager = new ImageManager(new Driver());
+            $imgName = hexdec(uniqid()) . '.' . $request->file('image')->getClientOriginalExtension();
+            $img = $manager->read($request->file('image'))->resize(540, 689);
+            $img->toJpeg(80)->save(base_path('public/uploads/products/' . $imgName));
+            $saveUrl = 'uploads/products/' . $imgName;
+        }
+
+        // Multiple Images
+        if ($request->file('images')) {
+            foreach ($request->file('images') as $multiImage) {
+                $imgName = hexdec(uniqid()) . '.' . $multiImage->getClientOriginalExtension();
+                $img = $manager->read($multiImage)->resize(540, 689);
+                $img->toJpeg(80)->save(base_path('public/uploads/products/' . $imgName));
+                $imagePaths[] = 'uploads/products/' . $imgName;
+            }
+        }
+
+        Product::create([
+            'name' => $request->name,
+            'slug' => Str::slug($request->name),
+            'short_description' => $request->short_description,
+            'description' => $request->description,
+            'regular_price' => $request->regular_price,
+            'sale_price' => $request->sale_price,
+            'SKU' => $request->SKU,
+            'stock_status' => $request->stock_status,
+            'features' => $request->has('features'),
+            'quantity' => $request->quantity,
+            'image' => $saveUrl,
+            'images' => json_encode($imagePaths), // Store array as JSON
+            'category_id' => $request->category_id,
+            'brand_id' => $request->brand_id,
+        ]);
+
+        return redirect()->route('products.index')->with('success', 'Product has been added successfully!');
+    }
+
+
+
+15. B. i) Edit Resources>views>admin>products.blade.php:
+<a class="tf-button style-1 w208" href="{{ route('products.create') }}"><i class="icon-plus"></i>Add new</a>
+
+
+
+15. B ii) Create View: product_create.blade.php
+Edit Resources>views>admin>product_create.blade.php:
+@extends('layouts.admin')
+
+@section('content')
+    <div class="main-content-inner">
+        <!-- main-content-wrap -->
+        <div class="main-content-wrap">
+            <div class="flex items-center flex-wrap justify-between gap20 mb-27">
+                <h3>Add Product</h3>
+                <ul class="breadcrumbs flex items-center flex-wrap justify-start gap10">
+                    <li>
+                        <a href="{{ route('admin.index') }}">
+                            <div class="text-tiny">Dashboard</div>
+                        </a>
+                    </li>
+                    <li>
+                        <i class="icon-chevron-right"></i>
+                    </li>
+                    <li>
+                        <a href="{{ route('products.index') }}">
+                            <div class="text-tiny">Products</div>
+                        </a>
+                    </li>
+                    <li>
+                        <i class="icon-chevron-right"></i>
+                    </li>
+                    <li>
+                        <div class="text-tiny">Add product</div>
+                    </li>
+                </ul>
+            </div>
+            <!-- form-add-product -->
+            <form class="tf-section-2 form-add-product" method="POST" enctype="multipart/form-data"
+                action="{{ route('products.store') }}">
+                @csrf
+                <div class="wg-box">
+                    <fieldset class="name">
+                        <div class="body-title mb-10">Product name <span class="tf-color-1">*</span>
+                        </div>
+                        <input class="mb-10" type="text" placeholder="Enter product name" name="name" tabindex="0"
+                            value="{{ old('name') }}" aria-required="true" required="">
+                        <div class="text-tiny">Do not exceed 100 characters when entering the
+                            product name.</div>
+                    </fieldset>
+                    @error('name')
+                        <span class="alert alert-danger text-center">{{ $message }}</span>
+                    @enderror
+                    <fieldset class="name">
+                        <div class="body-title mb-10">Slug <span class="tf-color-1">*</span></div>
+                        <input class="mb-10" type="text" placeholder="Enter product slug" name="slug" tabindex="0"
+                            value="{{ old('slug') }}" aria-required="true" required="">
+                        <div class="text-tiny">Do not exceed 100 characters when entering the
+                            product name.</div>
+                    </fieldset>
+                    @error('slug')
+                        <span class="alert alert-danger text-center">{{ $message }}</span>
+                    @enderror
+                    <div class="gap22 cols">
+                        <fieldset class="category">
+                            <div class="body-title mb-10">Category <span class="tf-color-1">*</span>
+                            </div>
+                            <div class="select">
+                                <select class="" name="category_id">
+                                    <option>Choose category</option>
+                                    @foreach ($categories as $category)
+                                        <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </fieldset>
+                        @error('category_id')
+                            <span class="alert alert-danger text-center">{{ $message }}</span>
+                        @enderror
+                        <fieldset class="brand">
+                            <div class="body-title mb-10">Brand <span class="tf-color-1">*</span>
+                            </div>
+                            <div class="select">
+                                <select class="" name="brand_id">
+                                    <option>Choose Brand</option>
+                                    @foreach ($brands as $brand)
+                                        <option value="{{ $brand->id }}">{{ $brand->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </fieldset>
+                        @error('brand_id')
+                            <span class="alert alert-danger text-center">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <fieldset class="shortdescription">
+                        <div class="body-title mb-10">Short Description <span class="tf-color-1">*</span></div>
+                        <textarea class="mb-10 ht-150" name="short_description" placeholder="Short Description" tabindex="0"
+                            aria-required="true" required="">{{ old('short_description') }}</textarea>
+                        <div class="text-tiny">Do not exceed 100 characters when entering the
+                            product name.</div>
+                    </fieldset>
+                    @error('short_description')
+                        <span class="alert alert-danger text-center">{{ $message }}</span>
+                    @enderror
+                    <fieldset class="description">
+                        <div class="body-title mb-10">Description <span class="tf-color-1">*</span>
+                        </div>
+                        <textarea class="mb-10" name="description" placeholder="Description" tabindex="0" aria-required="true"
+                            required="">{{ old('description') }}</textarea>
+                        <div class="text-tiny">Do not exceed 100 characters when entering the
+                            product name.</div>
+                    </fieldset>
+                    @error('description')
+                        <span class="alert alert-danger text-center">{{ $message }}</span>
+                    @enderror
+                </div>
+                <div class="wg-box">
+                    <fieldset>
+                        <div class="body-title">Upload images <span class="tf-color-1">*</span>
+                        </div>
+                        <div class="upload-image flex-grow">
+                            <div class="item" id="imgpreview" style="display:none">
+                                <img src="../../../localhost_8000/images/upload/upload-1.png" class="effect8"
+                                    alt="">
+                            </div>
+                            <div id="upload-file" class="item up-load">
+                                <label class="uploadfile" for="myFile">
+                                    <span class="icon">
+                                        <i class="icon-upload-cloud"></i>
+                                    </span>
+                                    <span class="body-text">Drop your images here or select <span class="tf-color">click
+                                            to browse</span></span>
+                                    <input type="file" id="myFile" name="image" accept="image/*">
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
+                    @error('image')
+                        <span class="alert alert-danger text-center">{{ $message }}</span>
+                    @enderror
+                    <fieldset>
+                        <div class="body-title mb-10">Upload Gallery Images</div>
+                        <div class="upload-image mb-16">
+                            <div id="galUpload" class="item up-load">
+                                <label class="uploadfile" for="gFile">
+                                    <span class="icon">
+                                        <i class="icon-upload-cloud"></i>
+                                    </span>
+                                    <span class="text-tiny">Drop your images here or select <span class="tf-color">click
+                                            to browse</span></span>
+                                    <input type="file" id="gFile" name="images[]" accept="image/*"
+                                        multiple="">
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
+                    @error('images')
+                        <span class="alert alert-danger text-center">{{ $message }}</span>
+                    @enderror
+                    <div class="cols gap22">
+                        <fieldset class="name">
+                            <div class="body-title mb-10">Regular Price <span class="tf-color-1">*</span></div>
+                            <input class="mb-10" type="text" placeholder="Enter regular price" name="regular_price"
+                                tabindex="0" value="{{ old('regular_price') }}" aria-required="true" required="">
+                        </fieldset>
+                        @error('regular_price')
+                            <span class="alert alert-danger text-center">{{ $message }}</span>
+                        @enderror
+                        <fieldset class="name">
+                            <div class="body-title mb-10">Sale Price <span class="tf-color-1">*</span></div>
+                            <input class="mb-10" type="text" placeholder="Enter sale price" name="sale_price"
+                                tabindex="0" value="{{ old('sale_price') }}" aria-required="true" required="">
+                        </fieldset>
+                        @error('sale_price')
+                            <span class="alert alert-danger text-center">{{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="cols gap22">
+                        <fieldset class="name">
+                            <div class="body-title mb-10">SKU <span class="tf-color-1">*</span>
+                            </div>
+                            <input class="mb-10" type="text" placeholder="Enter SKU" name="SKU" tabindex="0"
+                                value="{{ old('SKU') }}" aria-required="true" required="">
+                        </fieldset>
+                        @error('SKU')
+                            <span class="alert alert-danger text-center">{{ $message }}</span>
+                        @enderror
+                        <fieldset class="name">
+                            <div class="body-title mb-10">Quantity <span class="tf-color-1">*</span>
+                            </div>
+                            <input class="mb-10" type="text" placeholder="Enter quantity" name="quantity"
+                                tabindex="0" value="{{ old('quantity') }}" aria-required="true" required="">
+                        </fieldset>
+                        @error('quantity')
+                            <span class="alert alert-danger text-center">{{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="cols gap22">
+                        <fieldset class="name">
+                            <div class="body-title mb-10">Stock</div>
+                            <div class="select mb-10">
+                                <select class="" name="stock_status">
+                                    <option value="instock">InStock</option>
+                                    <option value="outofstock">Out of Stock</option>
+                                </select>
+                            </div>
+                        </fieldset>
+                        @error('stock_status')
+                            <span class="alert alert-danger text-center">{{ $message }}</span>
+                        @enderror
+                        <fieldset class="name">
+                            <div class="body-title mb-10">Featured</div>
+                            <div class="select mb-10">
+                                <select class="" name="features">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+                        </fieldset>
+                        @error('features')
+                            <span class="alert alert-danger text-center">{{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="cols gap10">
+                        <button class="tf-button w-full" type="submit">Add product</button>
+                    </div>
+                </div>
+            </form>
+            <!-- /form-add-product -->
+        </div>
+        <!-- /main-content-wrap -->
+    </div>
+@endsection
+
+@push('scripts')
+    <script>
+        $(function() {
+            // Single Image
+            $("#myFile").on("change", function(e) {
+                const [file] = this.files;
+                if (file) {
+                    $("#imgpreview img").attr('src', URL.createObjectURL(file));
+                    $("#imgpreview").show();
+                }
+            });
+
+            // Multiple Image
+            $("#gFile").on("change", function(e) {
+                const photoInp = $("#gFile");
+                const gphotos = this.files;
+
+                $.each(gphotos, function(key, val) {
+                    $("#galUpload").prepend(
+                        `<div class="item gitems"><img src="${URL.createObjectURL(val)}" /></div>`
+                        );
+                });
+            });
+
+            $("input[name='name']").on("change", function() {
+                $("input[name='slug']").val(StringToSlug($(this).val()));
+            });
+
+            function StringToSlug(Text) {
+                return Text.toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric characters with '-'
+                    .replace(/^-+|-+$/g, ''); // Remove leading and trailing dashes
+            }
+        });
+    </script>
+@endpush
+
+
+
+
+
+
+
+
+
+
+16. => Admin Edit Product:
+--------------------------
+16. A) Edit app>http>controller>ProductController.php:
+public function edit(Product $product)
+    {
+        $product->images = json_decode($product->images, true); // Decode JSON to array
+        $categories = Category::select('id', 'name')->orderBy('name')->get();
+        $brands = Brand::select('id', 'name')->orderBy('name')->get();
+        return view('admin.product_edit', compact(['product', 'categories', 'brands']));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Product $product)
+    {
+        $request->validate([
+            'name' => 'required',
+            'slug' => 'required|unique:products,slug,' . $product->id,
+            'short_description' => 'required',
+            'description' => 'required',
+            'regular_price' => 'required|numeric',
+            'sale_price' => 'nullable|numeric',
+            'SKU' => 'required',
+            'stock_status' => 'required|in:instock,outofstock',
+            'features' => 'required',
+            'quantity' => 'required|integer|min:0',
+            'image' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+            'images.*' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+            'category_id' => 'required',
+            'brand_id' => 'required',
+        ]);
+
+        $manager = new ImageManager(new Driver());
+        $saveUrl = $product->image;
+        $imagePaths = json_decode($product->images, true) ?: [];
+
+        // Primary Image Update
+        if ($request->file('image')) {
+            if ($product->image && file_exists(public_path($product->image))) {
+                unlink(public_path($product->image)); // Delete old primary image
+            }
+            $imgName = hexdec(uniqid()) . '.' . $request->file('image')->getClientOriginalExtension();
+            $img = $manager->read($request->file('image'))->resize(540, 689);
+            $img->toJpeg(80)->save(base_path('public/uploads/products/' . $imgName));
+            $saveUrl = 'uploads/products/' . $imgName;
+        }
+
+        // Delete existing multiple images if new images are uploaded
+        if ($request->file('images')) {
+            // Delete old multiple images
+            foreach ($imagePaths as $oldImagePath) {
+                if (file_exists(public_path($oldImagePath))) {
+                    unlink(public_path($oldImagePath));
+                }
+            }
+            $imagePaths = []; // Clear old paths
+
+            // Add new multiple images
+            foreach ($request->file('images') as $multiImage) {
+                $imgName = hexdec(uniqid()) . '.' . $multiImage->getClientOriginalExtension();
+                $img = $manager->read($multiImage)->resize(540, 689);
+                $img->toJpeg(80)->save(base_path('public/uploads/products/' . $imgName));
+                $imagePaths[] = 'uploads/products/' . $imgName;
+            }
+        }
+
+        $product->update([
+            'name' => $request->name,
+            'slug' => Str::slug($request->name),
+            'short_description' => $request->short_description,
+            'description' => $request->description,
+            'regular_price' => $request->regular_price,
+            'sale_price' => $request->sale_price,
+            'SKU' => $request->SKU,
+            'stock_status' => $request->stock_status,
+            'features' => $request->has('features'),
+            'quantity' => $request->quantity,
+            'image' => $saveUrl,
+            'images' => json_encode($imagePaths), // Update array as JSON
+            'category_id' => $request->category_id,
+            'brand_id' => $request->brand_id,
+        ]);
+
+        return redirect()->route('products.index')->with('success', 'Product updated successfully!');
+    }
+
+
+
+16. B. i) Edit Resources>views>admin>products.blade.php:
+<a href="{{ route('products.edit', $product->id) }}">
+                                                <div class="item edit">
+                                                    <i class="icon-edit-3"></i>
+                                                </div>
+                                            </a>
+
+
+
+16. B. ii) Create View: product_edit.blade.php
+Edit Resources>views>admin>product_edit.blade.php:
+@extends('layouts.admin')
+
+@section('content')
+    <div class="main-content-inner">
+        <!-- main-content-wrap -->
+        <div class="main-content-wrap">
+            <div class="flex items-center flex-wrap justify-between gap20 mb-27">
+                <h3>Edit Product</h3>
+                <ul class="breadcrumbs flex items-center flex-wrap justify-start gap10">
+                    <li>
+                        <a href="{{ route('admin.index') }}">
+                            <div class="text-tiny">Dashboard</div>
+                        </a>
+                    </li>
+                    <li>
+                        <i class="icon-chevron-right"></i>
+                    </li>
+                    <li>
+                        <a href="{{ route('products.index') }}">
+                            <div class="text-tiny">Products</div>
+                        </a>
+                    </li>
+                    <li>
+                        <i class="icon-chevron-right"></i>
+                    </li>
+                    <li>
+                        <div class="text-tiny">Edit product</div>
+                    </li>
+                </ul>
+            </div>
+            <!-- form-add-product -->
+            <form class="tf-section-2 form-add-product" method="POST" enctype="multipart/form-data"
+                action="{{ route('products.update', $product->id) }}">
+                @method('PUT')
+                @csrf
+                <div class="wg-box">
+                    <fieldset class="name">
+                        <div class="body-title mb-10">Product name <span class="tf-color-1">*</span>
+                        </div>
+                        <input class="mb-10" type="text" placeholder="Enter product name" name="name" tabindex="0"
+                            value="{{ $product->name }}" aria-required="true" required="">
+                        <div class="text-tiny">Do not exceed 100 characters when entering the
+                            product name.</div>
+                    </fieldset>
+                    @error('name')
+                        <span class="alert alert-danger text-center">{{ $message }}</span>
+                    @enderror
+                    <fieldset class="name">
+                        <div class="body-title mb-10">Slug <span class="tf-color-1">*</span></div>
+                        <input class="mb-10" type="text" placeholder="Enter product slug" name="slug" tabindex="0"
+                            value="{{ $product->slug }}" aria-required="true" required="">
+                        <div class="text-tiny">Do not exceed 100 characters when entering the
+                            product name.</div>
+                    </fieldset>
+                    @error('slug')
+                        <span class="alert alert-danger text-center">{{ $message }}</span>
+                    @enderror
+                    <div class="gap22 cols">
+                        <fieldset class="category">
+                            <div class="body-title mb-10">Category <span class="tf-color-1">*</span>
+                            </div>
+                            <div class="select">
+                                <select class="" name="category_id">
+                                    <option>Choose category</option>
+                                    @foreach ($categories as $category)
+                                        <option value="{{ $category->id }}"
+                                            {{ $product->category_id == $category->id ? 'selected' : '' }}>
+                                            {{ $category->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </fieldset>
+                        @error('category_id')
+                            <span class="alert alert-danger text-center">{{ $message }}</span>
+                        @enderror
+                        <fieldset class="brand">
+                            <div class="body-title mb-10">Brand <span class="tf-color-1">*</span>
+                            </div>
+                            <div class="select">
+                                <select class="" name="brand_id">
+                                    <option>Choose Brand</option>
+                                    @foreach ($brands as $brand)
+                                        <option value="{{ $brand->id }}"
+                                            {{ $product->brand_id == $brand->id ? 'selected' : '' }}>{{ $brand->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </fieldset>
+                        @error('brand_id')
+                            <span class="alert alert-danger text-center">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <fieldset class="shortdescription">
+                        <div class="body-title mb-10">Short Description <span class="tf-color-1">*</span></div>
+                        <textarea class="mb-10 ht-150" name="short_description" placeholder="Short Description" tabindex="0"
+                            aria-required="true" required="">{{ $product->short_description }}</textarea>
+                        <div class="text-tiny">Do not exceed 100 characters when entering the
+                            product name.</div>
+                    </fieldset>
+                    @error('short_description')
+                        <span class="alert alert-danger text-center">{{ $message }}</span>
+                    @enderror
+                    <fieldset class="description">
+                        <div class="body-title mb-10">Description <span class="tf-color-1">*</span>
+                        </div>
+                        <textarea class="mb-10" name="description" placeholder="Description" tabindex="0" aria-required="true"
+                            required="">{{ $product->description }}</textarea>
+                        <div class="text-tiny">Do not exceed 100 characters when entering the
+                            product name.</div>
+                    </fieldset>
+                    @error('description')
+                        <span class="alert alert-danger text-center">{{ $message }}</span>
+                    @enderror
+                </div>
+                <div class="wg-box">
+                    <fieldset>
+                        <div class="body-title">Upload images <span class="tf-color-1">*</span>
+                        </div>
+                        <div class="upload-image flex-grow">
+                            @if ($product->image)
+                                <div class="item" id="imgpreview">
+                                    <img src="{{ asset($product->image) }}" class="effect8" alt="{{ $product->name }}">
+                                </div>
+                            @endif
+                            <div id="upload-file" class="item up-load">
+                                <label class="uploadfile" for="myFile">
+                                    <span class="icon">
+                                        <i class="icon-upload-cloud"></i>
+                                    </span>
+                                    <span class="body-text">Drop your images here or select <span class="tf-color">click
+                                            to browse</span></span>
+                                    <input type="file" id="myFile" name="image" accept="image/*">
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
+                    @error('image')
+                        <span class="alert alert-danger text-center">{{ $message }}</span>
+                    @enderror
+                    <fieldset>
+                        <div class="body-title mb-10">Upload Gallery Images</div>
+                        <div class="upload-image mb-16">
+                            @if ($product->images)
+                                @foreach ($product->images as $img)
+                                    <div class="item gitems">
+                                        <img src="{{ asset($img) }}" class="effect8" alt="{{ $product->name }}">
+                                    </div>
+                                @endforeach
+                            @endif
+                            <div id="galUpload" class="item up-load">
+                                <label class="uploadfile" for="gFile">
+                                    <span class="icon"><i class="icon-upload-cloud"></i></span>
+                                    <span class="text-tiny">Drop your images here or select <span class="tf-color">click
+                                            to browse</span></span>
+                                    <input type="file" id="gFile" name="images[]" accept="image/*"
+                                        multiple="">
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    @error('images')
+                        <span class="alert alert-danger text-center">{{ $message }}</span>
+                    @enderror
+                    <div class="cols gap22">
+                        <fieldset class="name">
+                            <div class="body-title mb-10">Regular Price <span class="tf-color-1">*</span></div>
+                            <input class="mb-10" type="text" placeholder="Enter regular price" name="regular_price"
+                                tabindex="0" value="{{ $product->regular_price }}" aria-required="true"
+                                required="">
+                        </fieldset>
+                        @error('regular_price')
+                            <span class="alert alert-danger text-center">{{ $message }}</span>
+                        @enderror
+                        <fieldset class="name">
+                            <div class="body-title mb-10">Sale Price <span class="tf-color-1">*</span></div>
+                            <input class="mb-10" type="text" placeholder="Enter sale price" name="sale_price"
+                                tabindex="0" value="{{ $product->sale_price }}" aria-required="true" required="">
+                        </fieldset>
+                        @error('sale_price')
+                            <span class="alert alert-danger text-center">{{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="cols gap22">
+                        <fieldset class="name">
+                            <div class="body-title mb-10">SKU <span class="tf-color-1">*</span>
+                            </div>
+                            <input class="mb-10" type="text" placeholder="Enter SKU" name="SKU" tabindex="0"
+                                value="{{ $product->SKU }}" aria-required="true" required="">
+                        </fieldset>
+                        @error('SKU')
+                            <span class="alert alert-danger text-center">{{ $message }}</span>
+                        @enderror
+                        <fieldset class="name">
+                            <div class="body-title mb-10">Quantity <span class="tf-color-1">*</span>
+                            </div>
+                            <input class="mb-10" type="text" placeholder="Enter quantity" name="quantity"
+                                tabindex="0" value="{{ $product->quantity }}" aria-required="true" required="">
+                        </fieldset>
+                        @error('quantity')
+                            <span class="alert alert-danger text-center">{{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="cols gap22">
+                        <fieldset class="name">
+                            <div class="body-title mb-10">Stock</div>
+                            <div class="select mb-10">
+                                <select class="" name="stock_status">
+                                    <option value="instock" {{ $product->stock_status == 'instock' ? 'selected' : '' }}>
+                                        InStock</option>
+                                    <option value="outofstock"
+                                        {{ $product->stock_status == 'outofstock' ? 'selected' : '' }}>Out of Stock
+                                    </option>
+                                </select>
+                            </div>
+                        </fieldset>
+                        @error('stock_status')
+                            <span class="alert alert-danger text-center">{{ $message }}</span>
+                        @enderror
+                        <fieldset class="name">
+                            <div class="body-title mb-10">Featured</div>
+                            <div class="select mb-10">
+                                <select class="" name="features">
+                                    <option value="0" {{ $product->features == '0' ? 'selected' : '' }}>No</option>
+                                    <option value="1" {{ $product->features == '1' ? 'selected' : '' }}>Yes</option>
+                                </select>
+                            </div>
+                        </fieldset>
+                        @error('features')
+                            <span class="alert alert-danger text-center">{{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="cols gap10">
+                        <button class="tf-button w-full" type="submit">Update product</button>
+                    </div>
+                </div>
+            </form>
+            <!-- /form-add-product -->
+        </div>
+        <!-- /main-content-wrap -->
+    </div>
+@endsection
+
+@push('scripts')
+    <script>
+        $(function() {
+            // Single Image
+            $("#myFile").on("change", function(e) {
+                const [file] = this.files;
+                if (file) {
+                    $("#imgpreview img").attr('src', URL.createObjectURL(file));
+                    $("#imgpreview").show();
+                }
+            });
+
+            // Multiple Image Preview
+            $("#gFile").on("change", function(e) {
+                const gphotos = this.files;
+                $("#galUpload").siblings('.gitems').remove(); // Remove old previews
+
+                $.each(gphotos, function(key, val) {
+                    $("#galUpload").before(
+                        `<div class="item gitems"><img src="${URL.createObjectURL(val)}" /></div>`
+                    );
+                });
+            });
+
+
+            $("input[name='name']").on("change", function() {
+                $("input[name='slug']").val(StringToSlug($(this).val()));
+            });
+
+            function StringToSlug(Text) {
+                return Text.toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric characters with '-'
+                    .replace(/^-+|-+$/g, ''); // Remove leading and trailing dashes
+            }
+        });
+    </script>
+@endpush
+
+
+
+
+
+17. => Admin Delete Product:
+----------------------------
+17. A) Edit app>controller>ProductController.php:
+public function destroy(Product $product)
+    {
+        // Delete primary image
+        if ($product->image && file_exists(public_path($product->image))) {
+            unlink(public_path($product->image));
+        }
+        // Delete multiple images
+        $imagePaths = json_decode($product->images, true) ?: [];
+        foreach ($imagePaths as $path) {
+            if (file_exists(public_path($path))) {
+                unlink(public_path($path));
+            }
+        }
+        $product->delete();
+        return redirect()->route('products.index')->with('success', 'Product deleted successfully!');
+    }
+
+
+
+
+17. B) Edit Resources>views>admin>products.blade.php:
+<form action="{{ route('products.destroy', $product->id) }}" method="POST">
+                                                @csrf
+                                                @method('DELETE')
+                                                <div class="item text-danger delete">
+                                                    <i class="icon-trash-2"></i>
+                                                </div>
+                                            </form>
+
+
+Javascript:
+===========
+@push('scripts')
+    <script>
+        $(function() {
+            $('.delete').on('click', function(e) {
+                e.preventDefault();
+                let form = $(this).closest('form');
+                swal({
+                    title: 'Are you sure?',
+                    text: 'You want to delete this record?',
+                    type: "warning",
+                    buttons: ['No', 'Yes'],
+                    confirmButtonColor: '#dc3545'
+                }).then(function(result) {
+                    if (result) {
+                        form.submit();
+                    }
+                });
+
+            });
+        });
+    </script>
+@endpush
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
