@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ShopController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\AuthAdmin;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +13,18 @@ use Illuminate\Support\Facades\Route;
 Auth::routes();
 
 Route::get('/', [HomeController::class, 'index'])->name('home.index');
+Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
+Route::get('/shop/{product_slug}', [ShopController::class, 'view'])->name('product.shop.view');
+
+// Cart
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('/cart/add', [CartController::class, 'addCart'])->name('cart.add');
+Route::put('/cart/increaseQty/{rowId}', [CartController::class, 'increaseCartQty'])->name('cartQty.increase');
+Route::put('/cart/decreaseQty/{rowId}', [CartController::class, 'decreaseCartQty'])->name('cartQty.decrease');
+Route::delete('/cart/remove/{rowId}', [CartController::class, 'removeItem'])->name('cart.item.remove');
+Route::delete('/cart/clear', [CartController::class, 'emptyCart'])->name('cart.empty');
+
+
 
 Route::get('/test', function () {
     return view('test');
