@@ -6841,6 +6841,152 @@ Route::delete('/cart/clear', [CartController::class, 'emptyCart'])->name('cart.e
 
 
 
+23. => Product Sorting and Product Per Page:
+--------------------------------------------
+23. A) Edit app>http>controller>ShopController.php:
+// Shop Index
+    public function index(Request $request)
+    {
+        // Per Page Product
+        $size = $request->query('size') ? $request->query('size') : 12;
+
+        // Product Sorting
+        $orderColumn = "";
+        $orderOrder = "";
+        $order = $request->query('order') ? $request->query('order') : -1;
+        switch ($order) {
+            case 1:
+                $orderColumn = "created_at";
+                $orderOrder = "DESC";
+                break;
+
+            case 2:
+                $orderColumn = "created_at";
+                $orderOrder = "ASC";
+                break;
+
+            case 3:
+                $orderColumn = "sale_price";
+                $orderOrder = "ASC";
+                break;
+
+            case 4:
+                $orderColumn = "sale_price";
+                $orderOrder = "DESC";
+                break;
+
+            default:
+                $orderColumn = 'id';
+                $orderOrder = "DESC";
+        }
+        $products = Product::orderBy($orderColumn, $orderOrder)->paginate($size);
+        return view('shop', compact(['products', 'size', 'order']));
+    }
+
+
+
+23. B) Edit Resources>views>shop.blade.php:
+ <select class="shop-acs__select form-select w-auto border-0 py-0 order-1 order-md-0"
+                            aria-label="Page Size" id="pageSize" name="page_size" style="margin-right: 20px">
+                            <option value="12" {{ $size == 12 ? 'selected' : '' }}>Show</option>
+                            <option value="24" {{ $size == 24 ? 'selected' : '' }}>24</option>
+                            <option value="48" {{ $size == 48 ? 'selected' : '' }}>48</option>
+                            <option value="102" {{ $size == 102 ? 'selected' : '' }}>102</option>
+
+                        </select>
+
+                        <select class="shop-acs__select form-select w-auto border-0 py-0 order-1 order-md-0"
+                            aria-label="Sort Items" name="order_by" id="orderBy">
+                            <option value="-1" {{ $order == -1 ? 'selected' : '' }}>Default</option>
+                            <option value="1" {{ $order == 1 ? 'selected' : '' }}>Date, New To Old</option>
+                            <option value="2" {{ $order == 2 ? 'selected' : '' }}>Date, Old To New</option>
+                            <option value="3" {{ $order == 3 ? 'selected' : '' }}>Price, Low To High</option>
+                            <option value="4" {{ $order == 4 ? 'selected' : '' }}>Price, High To Low</option>
+                        </select>
+
+
+// Also Edit
+<div class="flex item-center justify-between flex-wrap gap10 wgp-pagination">
+                    {{ $products->withQueryString()->links('pagination::bootstrap-5') }}
+                </div>
+
+
+// Also Edit
+</main>
+
+    <form action="{{ route('shop.index') }}" id="formFilter" method="get">
+        @csrf
+        <input type="hidden" name="page" value="{{ $products->currentPage() }}">
+        <input type="hidden" id="size" name="size" value="{{ $size }}">
+        <input type="hidden" id="order" name="order" value="{{ $order }}">
+    </form>
+@endsection
+
+
+// Also Edit
+@push('scripts')
+    <script>
+        $(function() {
+            // Per Page Product
+            $('#pageSize').on("change", function() {
+                $("#size").val($("#pageSize option:selected").val());
+                $("#formFilter").submit();
+            });
+
+
+            // Product Sorting
+            $('#orderBy').on("change", function() {
+                $("#order").val($("#orderBy option:selected").val());
+                $("#formFilter").submit();
+            });
+
+        });
+    </script>
+@endpush
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+24. => Product Filter By Brand:
+-------------------------------
+24. A) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
