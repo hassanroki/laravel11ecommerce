@@ -6959,13 +6959,276 @@ Route::delete('/cart/clear', [CartController::class, 'emptyCart'])->name('cart.e
 
 24. => Product Filter By Brand:
 -------------------------------
-24. A) 
+24. A) Edit app>http>controller>AdminController.php:
+// Shop Index
+    public function index(Request $request)
+    {
+        // Per Page Product
+        $size = $request->query('size', 12);
+
+        // Product Sorting
+        $orderColumn = "";
+        $orderOrder = "";
+        $order = $request->query('order', -1);
+        switch ($order) {
+            case 1:
+                $orderColumn = "created_at";
+                $orderOrder = "DESC";
+                break;
+            case 2:
+                $orderColumn = "created_at";
+                $orderOrder = "ASC";
+                break;
+            case 3:
+                $orderColumn = "sale_price";
+                $orderOrder = "ASC";
+                break;
+            case 4:
+                $orderColumn = "sale_price";
+                $orderOrder = "DESC";
+                break;
+            default:
+                $orderColumn = 'id';
+                $orderOrder = "DESC";
+        }
+
+        // Brand Filter
+        $filterBrands = $request->query('brands', '');
+        $brandIds = !empty($filterBrands) ? explode(',', $filterBrands) : [];
+        $brands = Brand::orderBy('name', 'ASC')->get();
+
+        $products = Product::when($brandIds, function ($query) use ($brandIds) {
+            $query->whereIn('brand_id', $brandIds);
+        })->orderBy($orderColumn, $orderOrder)->paginate($size);
+
+        return view('shop', compact(['products', 'size', 'order', 'brands', 'filterBrands']));
+    }
 
 
 
 
 
 
+24. B) Edit Resources>views>shop.blade.php:
+<div class="d-flex flex-wrap">
+                                    <ul class="list list-inline mb-0 brand-list">
+                                        @foreach ($brands as $brand)
+                                            <li class="list-item">
+                                                <span class="menu-link py-1">
+                                                    <input type="checkbox" name="brands" value="{{ $brand->id }}"
+                                                        class="chk-brand" id=""
+                                                        @if (in_array($brand->id, explode(',', $filterBrands))) checked="checked" @endif>
+                                                    {{ $brand->name }}
+                                                </span>
+                                                <span class="text-right float-end">
+                                                    {{ $brand->products->count() }}
+                                                </span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+
+
+// Also Edit
+</main>
+
+    <form action="{{ route('shop.index') }}" id="formFilter" method="get">
+        <input type="hidden" name="page" value="{{ $products->currentPage() }}">
+        <input type="hidden" id="size" name="size" value="{{ $size }}">
+        <input type="hidden" id="order" name="order" value="{{ $order }}">
+        <input type="hidden" id="brands" name="brands">
+    </form>
+@endsection
+
+
+
+// Also Edit
+
+@push('scripts')
+    <script>
+        $(function() {
+            // Per Page Product
+            $('#pageSize').on("change", function() {
+                $("#size").val($("#pageSize option:selected").val());
+                $("#formFilter").submit();
+            });
+
+            // Product Sorting
+            $('#orderBy').on("change", function() {
+                $("#order").val($("#orderBy option:selected").val());
+                $("#formFilter").submit();
+            });
+
+            // Product Filters By Brand
+            $("input[name='brands']").on("change", function() {
+                let brands = $("input[name='brands']:checked").map(function() {
+                    return $(this).val();
+                }).get().join(',');
+
+                $("#brands").val(brands); // Set the brands filter value in the hidden input
+                $("#formFilter").submit();
+            });
+        });
+    </script>
+@endpush
+
+
+
+
+
+
+
+
+
+
+
+25. => Product Filters By Category:
+-----------------------------------
+25. A) Edit app>http>controller>AdminController.php:
+ // Shop Index
+    public function index(Request $request)
+    {
+        // Per Page Product
+        $size = $request->query('size', 12);
+
+        // Product Sorting
+        $orderColumn = "";
+        $orderOrder = "";
+        $order = $request->query('order', -1);
+        switch ($order) {
+            case 1:
+                $orderColumn = "created_at";
+                $orderOrder = "DESC";
+                break;
+            case 2:
+                $orderColumn = "created_at";
+                $orderOrder = "ASC";
+                break;
+            case 3:
+                $orderColumn = "sale_price";
+                $orderOrder = "ASC";
+                break;
+            case 4:
+                $orderColumn = "sale_price";
+                $orderOrder = "DESC";
+                break;
+            default:
+                $orderColumn = 'id';
+                $orderOrder = "DESC";
+        }
+
+        // Brand Filter
+        $filterBrands = $request->query('brands', '');
+        $brandIds = !empty($filterBrands) ? explode(',', $filterBrands) : [];
+        $brands = Brand::orderBy('name', 'ASC')->get();
+
+        // Cateogy Filter
+        $filterCategories = $request->query('categories');
+        $categoryIds = !empty($filterCategories) ? explode(',', $filterCategories) : [];
+        $categories = Category::orderBy('name', 'ASC')->get();
+
+        $products = Product::when($brandIds, function ($query) use ($brandIds) {
+            $query->whereIn('brand_id', $brandIds);
+        })
+            ->when($categoryIds, function ($query) use ($categoryIds) {
+                $query->whereIn('category_id', $categoryIds);
+            })
+            ->orderBy($orderColumn, $orderOrder)->paginate($size);
+
+        return view('shop', compact(['products', 'size', 'order', 'brands', 'filterBrands', 'categories', 'filterCategories']));
+    }
+
+
+
+
+25. B) Edit Resources>views>shop.blade.php:
+<div class="accordion-body px-0 pb-0 pt-3 category-list">
+                                <ul class="list list-inline mb-0">
+                                    @foreach ($categories as $category)
+                                        <li class="list-item">
+                                            <span class="menu-link py-1">
+                                                <input type="checkbox" name="categories" id="" class="chk-category"
+                                                    value="{{ $category->id }}" @if (in_array($category->id, explode(',', $filterCategories))) checked="checked" @endif>
+                                                {{ $category->name }}
+                                            </span>
+                                            <span class="text-right float-end">
+                                                {{ $category->products->count() }}
+                                            </span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+
+
+// Also Edit
+</main>
+
+    <form action="{{ route('shop.index') }}" id="formFilter" method="get">
+        <input type="hidden" name="page" value="{{ $products->currentPage() }}">
+        <input type="hidden" id="size" name="size" value="{{ $size }}">
+        <input type="hidden" id="order" name="order" value="{{ $order }}">
+        <input type="hidden" id="brands" name="brands">
+        <input type="hidden" id="categories" name="categories">
+    </form>
+@endsection
+
+
+// Also Edit
+@push('scripts')
+    <script>
+        $(function() {
+            // Per Page Product
+            $('#pageSize').on("change", function() {
+                $("#size").val($("#pageSize option:selected").val());
+                $("#formFilter").submit();
+            });
+
+            // Product Sorting
+            $('#orderBy').on("change", function() {
+                $("#order").val($("#orderBy option:selected").val());
+                $("#formFilter").submit();
+            });
+
+            // Product Filters By Brand
+            $("input[name='brands']").on("change", function() {
+                let brands = $("input[name='brands']:checked").map(function() {
+                    return $(this).val();
+                }).get().join(',');
+
+                $("#brands").val(brands); // Set the brands filter value in the hidden input
+                $("#formFilter").submit();
+            });
+
+            // Product Filters By Category
+            $("input[name='categories']").on("change", function() {
+                let categories = $("input[name='categories']:checked").map(function() {
+                    return $(this).val();
+                }).get().join(',');
+
+                $("#categories").val(categories);
+                $("#formFilter").submit();
+            });
+        });
+    </script>
+@endpush
+
+
+
+
+
+
+
+
+
+
+
+26. => Product Filter By Price:
+26. A) Edit app>http>controller>AdminController.php:
+
+
+
+
+26. Edit Resources>views>shop.blade.php:
 
 
 

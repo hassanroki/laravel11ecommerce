@@ -1,5 +1,8 @@
 @extends('layouts.app')
 @section('content')
+    <style>
+
+    </style>
     <main class="pt-90">
         <section class="shop-main container d-flex pt-4 pt-xl-5">
             <div class="shop-sidebar side-sticky bg-body" id="shopFilter">
@@ -28,38 +31,21 @@
                         </h5>
                         <div id="accordion-filter-1" class="accordion-collapse collapse show border-0"
                             aria-labelledby="accordion-heading-1" data-bs-parent="#categories-list">
-                            <div class="accordion-body px-0 pb-0 pt-3">
+                            <div class="accordion-body px-0 pb-0 pt-3 category-list">
                                 <ul class="list list-inline mb-0">
-                                    <li class="list-item">
-                                        <a href="#" class="menu-link py-1">Dresses</a>
-                                    </li>
-                                    <li class="list-item">
-                                        <a href="#" class="menu-link py-1">Shorts</a>
-                                    </li>
-                                    <li class="list-item">
-                                        <a href="#" class="menu-link py-1">Sweatshirts</a>
-                                    </li>
-                                    <li class="list-item">
-                                        <a href="#" class="menu-link py-1">Swimwear</a>
-                                    </li>
-                                    <li class="list-item">
-                                        <a href="#" class="menu-link py-1">Jackets</a>
-                                    </li>
-                                    <li class="list-item">
-                                        <a href="#" class="menu-link py-1">T-Shirts & Tops</a>
-                                    </li>
-                                    <li class="list-item">
-                                        <a href="#" class="menu-link py-1">Jeans</a>
-                                    </li>
-                                    <li class="list-item">
-                                        <a href="#" class="menu-link py-1">Trousers</a>
-                                    </li>
-                                    <li class="list-item">
-                                        <a href="#" class="menu-link py-1">Men</a>
-                                    </li>
-                                    <li class="list-item">
-                                        <a href="#" class="menu-link py-1">Jumpers & Cardigans</a>
-                                    </li>
+                                    @foreach ($categories as $category)
+                                        <li class="list-item">
+                                            <span class="menu-link py-1">
+                                                <input type="checkbox" name="categories" id="" class="chk-category"
+                                                    value="{{ $category->id }}"
+                                                    @if (in_array($category->id, explode(',', $filterCategories))) checked="checked" @endif>
+                                                {{ $category->name }}
+                                            </span>
+                                            <span class="text-right float-end">
+                                                {{ $category->products->count() }}
+                                            </span>
+                                        </li>
+                                    @endforeach
                                 </ul>
                             </div>
                         </div>
@@ -205,16 +191,16 @@
                         <div id="accordion-filter-price" class="accordion-collapse collapse show border-0"
                             aria-labelledby="accordion-heading-price" data-bs-parent="#price-filters">
                             <input class="price-range-slider" type="text" name="price_range" value=""
-                                data-slider-min="10" data-slider-max="1000" data-slider-step="5"
-                                data-slider-value="[250,450]" data-currency="$" />
+                                data-slider-min="1" data-slider-max="500" data-slider-step="5"
+                                data-slider-value="[{{ $minPrice }},{{ $maxPrice }}]" data-currency="$" />
                             <div class="price-range__info d-flex align-items-center mt-2">
                                 <div class="me-auto">
                                     <span class="text-secondary">Min Price: </span>
-                                    <span class="price-range__min">$250</span>
+                                    <span class="price-range__min">$1</span>
                                 </div>
                                 <div>
                                     <span class="text-secondary">Max Price: </span>
-                                    <span class="price-range__max">$450</span>
+                                    <span class="price-range__max">$500</span>
                                 </div>
                             </div>
                         </div>
@@ -510,6 +496,9 @@
         <input type="hidden" id="size" name="size" value="{{ $size }}">
         <input type="hidden" id="order" name="order" value="{{ $order }}">
         <input type="hidden" id="brands" name="brands">
+        <input type="hidden" id="categories" name="categories">
+        <input type="hidden" id="hdnMinPrice" name="min" value="{{ $minPrice }}">
+        <input type="hidden" id="hdnMaxPrice" name="max" value="{{ $maxPrice }}">
     </form>
 @endsection
 
@@ -537,6 +526,41 @@
 
                 $("#brands").val(brands); // Set the brands filter value in the hidden input
                 $("#formFilter").submit();
+            });
+
+            // Product Filters By Category
+            $("input[name='categories']").on("change", function() {
+                let categories = $("input[name='categories']:checked").map(function() {
+                    return $(this).val();
+                }).get().join(',');
+
+                $("#categories").val(categories);
+                $("#formFilter").submit();
+            });
+
+            // Product Filters By Price
+            // Debounce function to delay filter submissions while dragging
+            function debounce(func, wait) {
+                let timeout;
+                return function(...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+
+            $(function() {
+                // Product Filters By Price
+                const updatePriceFilter = debounce(function(min, max) {
+                    $("#hdnMinPrice").val(min);
+                    $("#hdnMaxPrice").val(max);
+                    $("#formFilter").submit();
+                }, 300); // 300ms delay to avoid excessive form submissions
+
+                $("[name='price_range']").on("slideStop", function(event) {
+                    let min = event.value[0];
+                    let max = event.value[1];
+                    updatePriceFilter(min, max);
+                });
             });
         });
     </script>
