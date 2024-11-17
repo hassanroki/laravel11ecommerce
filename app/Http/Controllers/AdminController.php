@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Coupon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -231,6 +232,40 @@ class AdminController extends Controller
         // Delete the brand from the database
         $category->delete();
         return redirect()->route('admin.categories')->with('success', 'Category Deleted!');
+    }
+
+    // Coupons
+    public function Coupons()
+    {
+        $coupons = Coupon::orderBy('expiry_date', 'DESC')->paginate(12);
+        return view('admin.coupons', compact(['coupons']));
+    }
+
+    // Coupon Add
+    public function couponAdd()
+    {
+        return view('admin.coupon_add');
+    }
+
+    // Coupon Store
+    public function couponStore(Request $request)
+    {
+        $request->validate([
+            'code' => 'required|unique:coupons,code',
+            'type' => 'required',
+            'value' => 'required|numeric',
+            'cart_value' => 'required|numeric',
+            'expiry_date' => 'required|date',
+        ]);
+
+        $coupon = new Coupon();
+        $coupon->code = $request->code;
+        $coupon->type = $request->type;
+        $coupon->value = $request->value;
+        $coupon->cart_value = $request->cart_value;
+        $coupon->expiry_date = $request->expiry_date;
+        $coupon->save();
+        return redirect()->route('admin.coupons')->with('success', 'New Coupon Added Successfully!');
     }
 
 }

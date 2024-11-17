@@ -6,6 +6,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WishListController;
 use App\Http\Middleware\AuthAdmin;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -24,7 +25,12 @@ Route::put('/cart/decreaseQty/{rowId}', [CartController::class, 'decreaseCartQty
 Route::delete('/cart/remove/{rowId}', [CartController::class, 'removeItem'])->name('cart.item.remove');
 Route::delete('/cart/clear', [CartController::class, 'emptyCart'])->name('cart.empty');
 
-
+// Add To Wish List
+Route::post('/wishlist/add', [WishListController::class, 'addToWishList'])->name('wishlist.add');
+Route::get('/wishlist', [WishListController::class, 'index'])->name('wishlist.index');
+Route::delete('/wishlist/item/remove/{rowId}', [WishListController::class, 'removeItem'])->name('wishlist.item.remove');
+Route::delete('/wishlist/clear', [WishListController::class, 'emptyWishlist'])->name('wishlist.item.clear');
+Route::post('/wishlist/move-to-cart/{rowId}', [WishListController::class, 'moveToCart'])->name('wishlist.move.to.cart');
 
 Route::get('/test', function () {
     return view('test');
@@ -55,4 +61,9 @@ Route::middleware(['auth', AuthAdmin::class])->group(function () {
 
     // Products
     Route::resource('/admin/products', ProductController::class);
+
+    // Coupons
+    Route::get('/admin/coupons', [AdminController::class, 'coupons'])->name('admin.coupons');
+    Route::get('/admin/coupon/add', [AdminController::class, 'couponAdd'])->name('admin.coupon.add');
+    Route::post('/admin/coupon/store', [AdminController::class, 'couponStore'])->name('admin.coupon.store');
 });

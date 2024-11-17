@@ -3,27 +3,27 @@
 
 <head>
     <mta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- CSRF Token -->
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+        <!-- CSRF Token -->
+        <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>{{ config('app.name', 'Laravel') }}</title>
 
-    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <meta name="author" content="surfside media" />
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/animate.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/animation.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/bootstrap.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/bootstrap-select.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/style.css') }}">
-    <link rel="stylesheet" href="{{ asset('font/fonts.css') }}">
-    <link rel="stylesheet" href="{{ asset('icon/style.css') }}">
-    <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}">
-    <link rel="apple-touch-icon-precomposed" href="{{ asset('images/favicon.ico') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/sweetalert.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/custom.css') }}">
-    @stack('styles')
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <meta name="author" content="surfside media" />
+        <link rel="stylesheet" type="text/css" href="{{ asset('css/animate.min.css') }}">
+        <link rel="stylesheet" type="text/css" href="{{ asset('css/animation.css') }}">
+        <link rel="stylesheet" type="text/css" href="{{ asset('css/bootstrap.css') }}">
+        <link rel="stylesheet" type="text/css" href="{{ asset('css/bootstrap-select.min.css') }}">
+        <link rel="stylesheet" type="text/css" href="{{ asset('css/style.css') }}">
+        <link rel="stylesheet" href="{{ asset('font/fonts.css') }}">
+        <link rel="stylesheet" href="{{ asset('icon/style.css') }}">
+        <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}">
+        <link rel="apple-touch-icon-precomposed" href="{{ asset('images/favicon.ico') }}">
+        <link rel="stylesheet" type="text/css" href="{{ asset('css/sweetalert.min.css') }}">
+        <link rel="stylesheet" type="text/css" href="{{ asset('css/custom.css') }}">
+        @stack('styles')
 </head>
 
 <body class="body">
@@ -40,8 +40,9 @@
                 <div class="section-menu-left">
                     <div class="box-logo">
                         <a href="{{ route('admin.index') }}" id="site-logo-inner">
-                            <img class="" id="logo_header" alt="" src="{{ asset('images/logo/logo.png') }}"
-                                data-light="images/logo/logo.png" data-dark="images/logo/logo.png">
+                            <img class="" id="logo_header" alt=""
+                                src="{{ asset('images/logo/logo.png') }}" data-light="images/logo/logo.png"
+                                data-dark="images/logo/logo.png">
                         </a>
                         <div class="button-show-hide">
                             <i class="icon-menu-left"></i>
@@ -141,7 +142,7 @@
                                     </a>
                                 </li>
                                 <li class="menu-item">
-                                    <a href="coupons.html" class="">
+                                    <a href="{{ route('admin.coupons') }}" class="">
                                         <div class="icon"><i class="icon-grid"></i></div>
                                         <div class="text">Coupns</div>
                                     </a>
@@ -164,7 +165,8 @@
                                 <li class="menu-item">
                                     <form action="{{ route('logout') }}" method="post" id="logout-form">
                                         @csrf
-                                        <a href="{{ route('logout') }}" class="" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                        <a href="{{ route('logout') }}" class=""
+                                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                                             <div class="icon"><i class="icon-settings"></i></div>
                                             <div class="text">Logout</div>
                                         </a>
@@ -180,9 +182,10 @@
                         <div class="wrap">
                             <div class="header-left">
                                 <a href="index-2.html">
-                                    <img class="" id="logo_header_mobile" alt="" src="{{ asset('images/logo/logo.png') }}"
-                                        data-light="images/logo/logo.png" data-dark="images/logo/logo.png"
-                                        data-width="154px" data-height="52px" data-retina="images/logo/logo.png">
+                                    <img class="" id="logo_header_mobile" alt=""
+                                        src="{{ asset('images/logo/logo.png') }}" data-light="images/logo/logo.png"
+                                        data-dark="images/logo/logo.png" data-width="154px" data-height="52px"
+                                        data-retina="images/logo/logo.png">
                                 </a>
                                 <div class="button-show-hide">
                                     <i class="icon-menu-left"></i>
@@ -191,8 +194,9 @@
 
                                 <form class="form-search flex-grow">
                                     <fieldset class="name">
-                                        <input type="text" placeholder="Search here..." class="show-search" name="name"
-                                            tabindex="2" value="" aria-required="true" required="">
+                                        <input type="text" placeholder="Search here..." class="show-search"
+                                            name="name" tabindex="2" value="" aria-required="true"
+                                            required="">
                                     </fieldset>
                                     <div class="button-submit">
                                         <button class="" type="submit"><i class="icon-search"></i></button>
@@ -209,7 +213,8 @@
                                                 <ul>
                                                     <li class="product-item gap14 mb-10">
                                                         <div class="image no-bg">
-                                                            <img src="{{ asset('images/products/17.png') }}" alt="">
+                                                            <img src="{{ asset('images/products/17.png') }}"
+                                                                alt="">
                                                         </div>
                                                         <div class="flex items-center justify-between gap20 flex-grow">
                                                             <div class="name">
@@ -223,7 +228,8 @@
                                                     </li>
                                                     <li class="product-item gap14 mb-10">
                                                         <div class="image no-bg">
-                                                            <img src="{{ asset('images/products/18.png') }}" alt="">
+                                                            <img src="{{ asset('images/products/18.png') }}"
+                                                                alt="">
                                                         </div>
                                                         <div class="flex items-center justify-between gap20 flex-grow">
                                                             <div class="name">
@@ -237,7 +243,8 @@
                                                     </li>
                                                     <li class="product-item gap14">
                                                         <div class="image no-bg">
-                                                            <img src="{{ asset('images/products/19.png') }}" alt="">
+                                                            <img src="{{ asset('images/products/19.png') }}"
+                                                                alt="">
                                                         </div>
                                                         <div class="flex items-center justify-between gap20 flex-grow">
                                                             <div class="name">
@@ -260,7 +267,8 @@
                                                 <ul>
                                                     <li class="product-item gap14 mb-10">
                                                         <div class="image no-bg">
-                                                            <img src="{{ asset('images/products/20.png') }}" alt="">
+                                                            <img src="{{ asset('images/products/20.png') }}"
+                                                                alt="">
                                                         </div>
                                                         <div class="flex items-center justify-between gap20 flex-grow">
                                                             <div class="name">
@@ -274,7 +282,8 @@
                                                     </li>
                                                     <li class="product-item gap14 mb-10">
                                                         <div class="image no-bg">
-                                                            <img src="{{ asset('images/products/21.png') }}" alt="">
+                                                            <img src="{{ asset('images/products/21.png') }}"
+                                                                alt="">
                                                         </div>
                                                         <div class="flex items-center justify-between gap20 flex-grow">
                                                             <div class="name">
@@ -288,7 +297,8 @@
                                                     </li>
                                                     <li class="product-item gap14 mb-10">
                                                         <div class="image no-bg">
-                                                            <img src="{{ asset('images/products/22.png') }}" alt="">
+                                                            <img src="{{ asset('images/products/22.png') }}"
+                                                                alt="">
                                                         </div>
                                                         <div class="flex items-center justify-between gap20 flex-grow">
                                                             <div class="name">
@@ -302,7 +312,8 @@
                                                     </li>
                                                     <li class="product-item gap14">
                                                         <div class="image no-bg">
-                                                            <img src="{{ asset('images/products/23.png') }}" alt="">
+                                                            <img src="{{ asset('images/products/23.png') }}"
+                                                                alt="">
                                                         </div>
                                                         <div class="flex items-center justify-between gap20 flex-grow">
                                                             <div class="name">
@@ -378,7 +389,8 @@
                                                     <div>
                                                         <div class="body-title-2">Order pending: <span>ID 305830</span>
                                                         </div>
-                                                        <div class="text-tiny">Ultricies at rhoncus at ullamcorper</div>
+                                                        <div class="text-tiny">Ultricies at rhoncus at ullamcorper
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </li>
@@ -396,7 +408,8 @@
                                             id="dropdownMenuButton3" data-bs-toggle="dropdown" aria-expanded="false">
                                             <span class="header-user wg-user">
                                                 <span class="image">
-                                                    <img src="{{ asset('images/avatar/user-1.png') }}" alt="">
+                                                    <img src="{{ asset('images/avatar/user-1.png') }}"
+                                                        alt="">
                                                 </span>
                                                 <span class="flex flex-column">
                                                     <span class="body-title mb-2">Kristin Watson</span>
@@ -477,27 +490,36 @@
     <script src="{{ asset('js/apexcharts/apexcharts.js') }}"></script>
     <script src="{{ asset('js/main.js') }}"></script>
     <script>
-        (function ($) {
+        (function($) {
 
-            var tfLineChart = (function () {
+            var tfLineChart = (function() {
 
-                var chartBar = function () {
+                var chartBar = function() {
 
                     var options = {
                         series: [{
-                            name: 'Total',
-                            data: [0.00, 0.00, 0.00, 0.00, 0.00, 273.22, 208.12, 0.00, 0.00, 0.00, 0.00, 0.00]
-                        }, {
-                            name: 'Pending',
-                            data: [0.00, 0.00, 0.00, 0.00, 0.00, 273.22, 208.12, 0.00, 0.00, 0.00, 0.00, 0.00]
-                        },
-                        {
-                            name: 'Delivered',
-                            data: [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00]
-                        }, {
-                            name: 'Canceled',
-                            data: [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00]
-                        }],
+                                name: 'Total',
+                                data: [0.00, 0.00, 0.00, 0.00, 0.00, 273.22, 208.12, 0.00, 0.00,
+                                    0.00, 0.00, 0.00
+                                ]
+                            }, {
+                                name: 'Pending',
+                                data: [0.00, 0.00, 0.00, 0.00, 0.00, 273.22, 208.12, 0.00, 0.00,
+                                    0.00, 0.00, 0.00
+                                ]
+                            },
+                            {
+                                name: 'Delivered',
+                                data: [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00,
+                                    0.00, 0.00
+                                ]
+                            }, {
+                                name: 'Canceled',
+                                data: [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00,
+                                    0.00, 0.00
+                                ]
+                            }
+                        ],
                         chart: {
                             type: 'bar',
                             height: 325,
@@ -528,7 +550,9 @@
                                     colors: '#212529',
                                 },
                             },
-                            categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                            categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+                                'Oct', 'Nov', 'Dec'
+                            ],
                         },
                         yaxis: {
                             show: false,
@@ -538,7 +562,7 @@
                         },
                         tooltip: {
                             y: {
-                                formatter: function (val) {
+                                formatter: function(val) {
                                     return "$ " + val + ""
                                 }
                             }
@@ -556,25 +580,25 @@
 
                 /* Function ============ */
                 return {
-                    init: function () { },
+                    init: function() {},
 
-                    load: function () {
+                    load: function() {
                         chartBar();
                     },
-                    resize: function () { },
+                    resize: function() {},
                 };
             })();
 
-            jQuery(document).ready(function () { });
+            jQuery(document).ready(function() {});
 
-            jQuery(window).on("load", function () {
+            jQuery(window).on("load", function() {
                 tfLineChart.load();
             });
 
-            jQuery(window).on("resize", function () { });
+            jQuery(window).on("resize", function() {});
         })(jQuery);
     </script>
-     @stack('scripts')
+    @stack('scripts')
 </body>
 
 </html>

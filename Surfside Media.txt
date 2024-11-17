@@ -7224,11 +7224,900 @@ Route::delete('/cart/clear', [CartController::class, 'emptyCart'])->name('cart.e
 
 26. => Product Filter By Price:
 26. A) Edit app>http>controller>AdminController.php:
+// Shop Index
+    public function index(Request $request)
+    {
+        // Per Page Product
+        $size = $request->query('size', 12);
+
+        // Product Sorting
+        $orderColumn = "";
+        $orderOrder = "";
+        $order = $request->query('order', -1);
+        switch ($order) {
+            case 1:
+                $orderColumn = "created_at";
+                $orderOrder = "DESC";
+                break;
+            case 2:
+                $orderColumn = "created_at";
+                $orderOrder = "ASC";
+                break;
+            case 3:
+                $orderColumn = "sale_price";
+                $orderOrder = "ASC";
+                break;
+            case 4:
+                $orderColumn = "sale_price";
+                $orderOrder = "DESC";
+                break;
+            default:
+                $orderColumn = 'id';
+                $orderOrder = "DESC";
+        }
+
+        // Brand Filter
+        $filterBrands = $request->query('brands', '');
+        $brandIds = !empty($filterBrands) ? explode(',', $filterBrands) : [];
+        $brands = Brand::orderBy('name', 'ASC')->get();
+
+        // Cateogy Filter
+        $filterCategories = $request->query('categories');
+        $categoryIds = !empty($filterCategories) ? explode(',', $filterCategories) : [];
+        $categories = Category::orderBy('name', 'ASC')->get();
+
+        // Product Filer By Price
+        $minPrice = $request->query('min') ? $request->query('min') : 1;
+        $maxPrice = $request->query('max') ? $request->query('max') : 500;
+
+        $products = Product::when($brandIds, function ($query) use ($brandIds) {
+            $query->whereIn('brand_id', $brandIds);
+        })
+            ->when($categoryIds, function ($query) use ($categoryIds) {
+                $query->whereIn('category_id', $categoryIds);
+            })
+            ->where(function ($query) use ($minPrice, $maxPrice) {
+                $query->whereBetween('regular_price', [$minPrice, $maxPrice])
+                    ->orWhereBetween('sale_price', [$minPrice, $maxPrice]);
+            })
+            ->orderBy($orderColumn, $orderOrder)->paginate($size);
+
+        return view('shop', compact(['products', 'size', 'order', 'brands', 'filterBrands', 'categories', 'filterCategories', 'minPrice', 'maxPrice']));
+    }
 
 
 
 
-26. Edit Resources>views>shop.blade.php:
+
+26. B) Edit Resources>views>shop.blade.php:
+<div id="accordion-filter-price" class="accordion-collapse collapse show border-0"
+                            aria-labelledby="accordion-heading-price" data-bs-parent="#price-filters">
+                            <input class="price-range-slider" type="text" name="price_range" value=""
+                                data-slider-min="1" data-slider-max="500" data-slider-step="5"
+                                data-slider-value="[{{ $minPrice }},{{ $maxPrice }}]" data-currency="$" />
+                            <div class="price-range__info d-flex align-items-center mt-2">
+                                <div class="me-auto">
+                                    <span class="text-secondary">Min Price: </span>
+                                    <span class="price-range__min">$1</span>
+                                </div>
+                                <div>
+                                    <span class="text-secondary">Max Price: </span>
+                                    <span class="price-range__max">$500</span>
+                                </div>
+                            </div>
+                        </div>
+
+// Also Edit
+</main>
+
+    <form action="{{ route('shop.index') }}" id="formFilter" method="get">
+        <input type="hidden" name="page" value="{{ $products->currentPage() }}">
+        <input type="hidden" id="size" name="size" value="{{ $size }}">
+        <input type="hidden" id="order" name="order" value="{{ $order }}">
+        <input type="hidden" id="brands" name="brands">
+        <input type="hidden" id="categories" name="categories">
+        <input type="hidden" id="hdnMinPrice" name="min" value="{{ $minPrice }}">
+        <input type="hidden" id="hdnMaxPrice" name="max" value="{{ $maxPrice }}">
+    </form>
+@endsection
+
+// Also Edit
+
+@push('scripts')
+    <script>
+        $(function() {
+            // Per Page Product
+            $('#pageSize').on("change", function() {
+                $("#size").val($("#pageSize option:selected").val());
+                $("#formFilter").submit();
+            });
+
+            // Product Sorting
+            $('#orderBy').on("change", function() {
+                $("#order").val($("#orderBy option:selected").val());
+                $("#formFilter").submit();
+            });
+
+            // Product Filters By Brand
+            $("input[name='brands']").on("change", function() {
+                let brands = $("input[name='brands']:checked").map(function() {
+                    return $(this).val();
+                }).get().join(',');
+
+                $("#brands").val(brands); // Set the brands filter value in the hidden input
+                $("#formFilter").submit();
+            });
+
+            // Product Filters By Category
+            $("input[name='categories']").on("change", function() {
+                let categories = $("input[name='categories']:checked").map(function() {
+                    return $(this).val();
+                }).get().join(',');
+
+                $("#categories").val(categories);
+                $("#formFilter").submit();
+            });
+
+            // Product Filters By Price
+            // Debounce function to delay filter submissions while dragging
+            function debounce(func, wait) {
+                let timeout;
+                return function(...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+
+            $(function() {
+                // Product Filters By Price
+                const updatePriceFilter = debounce(function(min, max) {
+                    $("#hdnMinPrice").val(min);
+                    $("#hdnMaxPrice").val(max);
+                    $("#formFilter").submit();
+                }, 300); // 300ms delay to avoid excessive form submissions
+
+                $("[name='price_range']").on("slideStop", function(event) {
+                    let min = event.value[0];
+                    let max = event.value[1];
+                    updatePriceFilter(min, max);
+                });
+            });
+        });
+    </script>
+@endpush
+
+
+
+
+
+
+
+
+
+
+27. => Add Product to Wish List:
+--------------------------------
+27. A) Create WishListController
+Command: php artisan make:controller WishListController
+Edit app>http>controller>WishListController.php:
+// Add to Wish List
+    public function addToWishList(Request $request)
+    {
+        Cart::instance('wishlist')->add($request->id, $request->name, $request->quantity, $request->price)->associate('App\Models\Product');
+        return redirect()->back();
+    }
+
+
+
+27. B) Create Route>web.php:
+// Add To Wish List
+Route::post('/wishlist/add', [WishListController::class, 'addToWishList'])->name('wishlist.add');
+
+
+
+27. C) Edit Resources>views>shop.blade.php:
+@if (Cart::instance('wishlist')->content()->where('id', $product->id)->count() > 0)
+                                        <button type="submit"
+                                            class="pc__btn-wl position-absolute top-0 end-0 bg-transparent border-0 js-add-wishlist"
+                                            title="Add To Wishlist" style="color: orange;">
+                                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"
+                                                xmlns="http://www.w3.org/2000/svg">
+                                                <use href="#icon_heart" />
+                                            </svg>
+                                        </button>
+                                    @else
+                                        <form action="{{ route('wishlist.add') }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="id" value="{{ $product->id }}">
+                                            <input type="hidden" name="name" value="{{ $product->name }}">
+                                            <input type="hidden" name="price"
+                                                value="{{ $product->sale_price == '' ? $product->regular_price : $product->sale_price }}">
+                                            <input type="hidden" name="quantity" value="1">
+                                            <button type="submit"
+                                                class="pc__btn-wl position-absolute top-0 end-0 bg-transparent border-0 js-add-wishlist"
+                                                title="Add To Wishlist">
+                                                <svg width="16" height="16" viewBox="0 0 20 20" fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg">
+                                                    <use href="#icon_heart" />
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    @endif
+
+
+
+
+27. D) Edit Resources>views>layouts>app.blade.php:
+<a href="wishlist.html" class="header-tools__item header-tools__cart">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <use href="#icon_heart" />
+                        </svg>
+                        @if (Cart::instance('wishlist')->content()->count() > 0)
+                            <span
+                                class="cart-amount d-block position-absolute js-cart-items-count">{{ Cart::instance('wishlist')->content()->count() }}</span>
+                        @endif
+                    </a>
+
+
+
+27. E) Edit Resources>views>product_details.blade.php:
+@if (Cart::instance('wishlist')->content()->where('id', $product->id)->count() > 0)
+                            <a href="javascript:void(0)" class="menu-link menu-link_us-s add-to-wishlist"
+                                style="color: orange;"><svg width="16" height="16" viewBox="0 0 20 20"
+                                    fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <use href="#icon_heart" />
+                                </svg><span>Remove to Wishlist</span></a>
+                        @else
+                            <form action="{{ route('wishlist.add') }}" method="POST" id="wishListForm">
+                                @csrf
+                                <input type="hidden" name="id" value="{{ $product->id }}">
+                                <input type="hidden" name="name" value="{{ $product->name }}">
+                                <input type="hidden" name="price"
+                                    value="{{ $product->sale_price == '' ? $product->regular_price : $product->sale_price }}">
+                                <input type="hidden" name="quantity" value="1">
+                                <a href="javascript:void(0)" class="menu-link menu-link_us-s add-to-wishlist"
+                                    onclick="document.getElementById('wishListForm').submit();"><svg width="16"
+                                        height="16" viewBox="0 0 20 20" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <use href="#icon_heart" />
+                                    </svg><span>Add to Wishlist</span></a>
+                            </form>
+                        @endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+28. => Show All Wishlisted Products:
+------------------------------------
+28. A) Edit app>http>controller>WishListController.php:
+// Index
+    public function index()
+    {
+        $items = Cart::instance('wishlist')->content();
+        return view('wishlist', compact(['items']));
+    }
+
+
+
+
+28. B) Create Route>web.php:
+Route::get('/wishlist', [WishListController::class, 'index'])->name('wishlist.index');
+
+
+
+
+
+28. D) Edit Resources>views>layouts>app.blade.php:
+<a href="{{ route('wishlist.index') }}" class="header-tools__item header-tools__cart">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <use href="#icon_heart" />
+                        </svg>
+                        @if (Cart::instance('wishlist')->content()->count() > 0)
+                            <span
+                                class="cart-amount d-block position-absolute js-cart-items-count">{{ Cart::instance('wishlist')->content()->count() }}</span>
+                        @endif
+                    </a>
+
+
+
+
+28. C) Create View: wishlist.blade.php
+Edit Resources>views>wishlist.blade.php:
+@extends('layouts.app')
+
+@section('content')
+    <main class="pt-90">
+        <div class="mb-4 pb-4"></div>
+        <section class="shop-checkout container">
+            <h2 class="page-title">Wishlist</h2>
+
+            <div class="shopping-cart">
+                <div class="cart-table__wrapper">
+                    <table class="cart-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th></th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Subtotal</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($items as $item)
+                                <tr>
+                                    <td>
+                                        <div class="shopping-cart__product-item">
+                                            <img loading="lazy" src="{{ asset($item->model->image) }}" width="120"
+                                                height="120" alt="{{ asset($item->name) }}" />
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="shopping-cart__product-item__detail">
+                                            <h4>{{ $item->name }}</h4>
+                                            {{-- <ul class="shopping-cart__product-item__options">
+                                            <li>Color: Yellow</li>
+                                            <li>Size: L</li>
+                                        </ul> --}}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="shopping-cart__product-price">${{ $item->price }}</span>
+                                    </td>
+                                    <td>
+                                        {{ $item->qty }}
+                                    </td>
+
+                                    <td>
+                                        <a href="#" class="remove-cart">
+                                            <svg width="10" height="10" viewBox="0 0 10 10" fill="#767676"
+                                                xmlns="http://www.w3.org/2000/svg">
+                                                <path
+                                                    d="M0.259435 8.85506L9.11449 0L10 0.885506L1.14494 9.74056L0.259435 8.85506Z" />
+                                                <path
+                                                    d="M0.885506 0.0889838L9.74057 8.94404L8.85506 9.82955L0 0.97449L0.885506 0.0889838Z" />
+                                            </svg>
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                    <div class="cart-table-footer">
+                        <button class="btn btn-light">UPDATE CART</button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+@endsection
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+29. => Remove Product From Wishlist:
+------------------------------------
+29. A) Edit app>http>controller>WishListController.php:
+// Remove Item
+    public function removeItem($rowId)
+    {
+        Cart::instance('wishlist')->remove($rowId);
+        return redirect()->back();
+    }
+
+    // Empty Wish List
+    public function emptyWishlist()
+    {
+        Cart::instance('wishlist')->destroy();
+        return redirect()->back();
+    }
+
+
+
+
+
+29. B) Create Route>web.php:
+Route::delete('/wishlist/item/remove/{rowId}', [WishListController::class, 'removeItem'])->name('wishlist.item.remove');
+Route::delete('/wishlist/clear', [WishListController::class, 'emptyWishlist'])->name('wishlist.item.clear');
+
+
+
+
+29. C) Edit Resources>views>wishlist.blade.php:
+<div class="shopping-cart">
+                @if (Cart::instance('wishlist')->content()->count() > 0)
+                    <div class="cart-table__wrapper">
+                        <table class="cart-table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th></th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Action</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($items as $item)
+                                    <tr>
+                                        <td>
+                                            <div class="shopping-cart__product-item">
+                                                <img loading="lazy" src="{{ asset($item->model->image) }}" width="120"
+                                                    height="120" alt="{{ asset($item->name) }}" />
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="shopping-cart__product-item__detail">
+                                                <h4>{{ $item->name }}</h4>
+                                                {{-- <ul class="shopping-cart__product-item__options">
+                                            <li>Color: Yellow</li>
+                                            <li>Size: L</li>
+                                        </ul> --}}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="shopping-cart__product-price">${{ $item->price }}</span>
+                                        </td>
+                                        <td>
+                                            {{ $item->qty }}
+                                        </td>
+
+                                        <td>
+                                            <form action="{{ route('wishlist.item.remove', ['rowId' => $item->rowId]) }}"
+                                                method="POST" id="removeItem{{ $item->id }}">
+                                                @csrf
+                                                @method('DELETE')
+                                                <a href="javascript:void(0)" class="remove-cart"
+                                                    onclick="document.getElementById('removeItem{{ $item->id }}').submit();">
+                                                    <svg width="10" height="10" viewBox="0 0 10 10" fill="#767676"
+                                                        xmlns="http://www.w3.org/2000/svg">
+                                                        <path
+                                                            d="M0.259435 8.85506L9.11449 0L10 0.885506L1.14494 9.74056L0.259435 8.85506Z" />
+                                                        <path
+                                                            d="M0.885506 0.0889838L9.74057 8.94404L8.85506 9.82955L0 0.97449L0.885506 0.0889838Z" />
+                                                    </svg>
+                                                </a>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                        <div class="cart-table-footer">
+                            <form action="{{ route('wishlist.item.clear') }}" method="post">
+                                @csrf
+                                @method('DELETE')
+                            <button type="submit" class="btn btn-light">CLEAR WISHLIST</button>
+                        </form>
+                        </div>
+                    </div>
+                @else
+                    <div class="row">
+                        <div class="col-md-12">
+                            <p>No item found in your wishlist</p>
+                            <a href="{{ route('shop.index') }}" class="btn btn-info">Wishlist Now</a>
+                        </div>
+                    </div>
+                @endif
+
+
+            </div>
+
+
+
+
+
+
+
+29. D) Also Remove Wishlist From Shop Page
+Edit Resources>views>shop.blade.php:
+<form action="{{ route('wishlist.item.remove', ['rowId' => Cart::instance('wishlist')->content()->where('id', $product->id)->first()->rowId]) }}"
+                                            method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="pc__btn-wl position-absolute top-0 end-0 bg-transparent border-0 js-add-wishlist"
+                                                title="Add To Wishlist" style="color: orange;">
+                                                <svg width="16" height="16" viewBox="0 0 20 20" fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg">
+                                                    <use href="#icon_heart" />
+                                                </svg>
+                                            </button>
+                                        </form>
+
+
+
+29. E) Also Remove Wishlist From Product Details Page
+Edit Resources>views>product_details.blade.php:
+<form action="{{ route('wishlist.item.remove', ['rowId' => Cart::instance('wishlist')->content()->where('id', $product->id)->first()->rowId]) }}"
+                            method="POST" id="removeItem">
+                            @csrf
+                            @method('DELETE')
+                            <a href="javascript:void(0)" onclick="document.getElementById('removeItem').submit();" class="menu-link menu-link_us-s add-to-wishlist"
+                                style="color: orange;"><svg width="16" height="16" viewBox="0 0 20 20"
+                                    fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <use href="#icon_heart" />
+                                </svg><span> Remove to Wishlist</span></a>
+                        </form>
+
+
+
+
+
+
+
+
+
+
+
+
+30. => Move Product From Wishlist to Cart:
+------------------------------------------
+30. A) Edit app>http>controller>WishlistController.php:
+// Wishlist From Move to Cart
+    public function moveToCart($rowId)
+    {
+        $item = Cart::instance('wishlist')->get($rowId);
+        Cart::instance('wishlist')->remove($rowId);
+        Cart::instance('cart')->add($item->id, $item->name, $item->qty, $item->price)->associate('App\Models\Product');
+        return redirect()->back();
+    }
+
+
+
+30. B) Create Route>web.php:
+Route::post('/wishlist/move-to-cart/{rowId}', [WishListController::class, 'moveToCart'])->name('wishlist.move.to.cart');
+
+
+
+30. C) Edit Resources>views>wishlist.blade.php:
+<div class="col-6">
+                                                    <form
+                                                        action="{{ route('wishlist.move.to.cart', ['rowId' => $item->rowId]) }}"
+                                                        method="post">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-sm btn-warning">Move to Cart</button>
+                                                    </form>
+                                                </div>
+
+
+
+
+
+
+
+
+
+31. => Admin Create Coupons Page:
+---------------------------------
+31. A) Create Migration and Model
+Command: php artisan make:model Coupon -m
+
+
+31. A. i) Migration
+Edit Database>migrations>2024_11_13_040259_create_coupons_table.php:
+ Schema::create('coupons', function (Blueprint $table) {
+            $table->id();
+            $table->string('code')->unique();
+            $table->enum('type', ['fixed', 'percent']);
+            $table->decimal('value');
+            $table->decimal('cart_value');
+            $table->date('expiry_date')->default(DB::raw("(DATE(CURRENT_TIMESTAMP))"));
+            $table->timestamps();
+        });
+Then, Command: php artisan migrate
+
+
+
+
+31. A. ii) Model
+Edit app>Models>Coupon.php:
+protected $guarded = [];
+
+
+
+
+31. B) Edit app>http>controller>AdminController.php:
+// Coupons
+    public function Coupons(){
+        $coupons = Coupon::orderBy('expiry_date', 'DESC')->paginate(12);
+        return view('admin.coupons', compact(['coupons']));
+    }
+
+
+
+
+31. C) Create Route>web.php:
+// Coupons
+    Route::get('/admin/coupons', [AdminController::class, 'coupons'])->name('admin.coupons');
+
+
+
+
+31. D) Edit Resources>views>layouts>admin.blade.php:
+<li class="menu-item">
+                                    <a href="{{ route('admin.coupons') }}" class="">
+                                        <div class="icon"><i class="icon-grid"></i></div>
+                                        <div class="text">Coupns</div>
+                                    </a>
+                                </li>
+
+
+
+
+
+31. E) Create View: coupons.blade.php
+Edit Resources>views>admin>coupons.blade.php:
+@extends('layouts.admin')
+
+@section('content')
+    <div class="main-content-inner">
+        <div class="main-content-wrap">
+            <div class="flex items-center flex-wrap justify-between gap20 mb-27">
+                <h3>Coupons</h3>
+                <ul class="breadcrumbs flex items-center flex-wrap justify-start gap10">
+                    <li>
+                        <a href="{{ route('admin.index') }}">
+                            <div class="text-tiny">Dashboard</div>
+                        </a>
+                    </li>
+                    <li>
+                        <i class="icon-chevron-right"></i>
+                    </li>
+                    <li>
+                        <div class="text-tiny">Coupons</div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="wg-box">
+                <div class="flex items-center justify-between gap10 flex-wrap">
+                    <div class="wg-filter flex-grow">
+                        <form class="form-search">
+                            <fieldset class="name">
+                                <input type="text" placeholder="Search here..." class="" name="name"
+                                    tabindex="2" value="" aria-required="true" required="">
+                            </fieldset>
+                            <div class="button-submit">
+                                <button class="" type="submit"><i class="icon-search"></i></button>
+                            </div>
+                        </form>
+                    </div>
+                    <a class="tf-button style-1 w208" href="add-coupon.html"><i class="icon-plus"></i>Add new</a>
+                </div>
+                <div class="wg-table table-all-user">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Code</th>
+                                    <th>Type</th>
+                                    <th>Value</th>
+                                    <th>Cart Value</th>
+                                    <th>Expiry Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($coupons as $coupon)
+                                    <tr>
+                                        <td>{{ $coupon->id }}</td>
+                                        <td>{{ $coupon->code }}</td>
+                                        <td>{{ $coupon->type }}</td>
+                                        <td>{{ $coupon->value }}</td>
+                                        <td>{{ $coupon->cart_value }}</td>
+                                        <td>{{ $coupon->expiry_date }}</td>
+                                        <td>
+                                            <div class="list-icon-function">
+                                                <a href="#">
+                                                    <div class="item edit">
+                                                        <i class="icon-edit-3"></i>
+                                                    </div>
+                                                </a>
+                                                <form action="#" method="POST">
+                                                    <div class="item text-danger delete">
+                                                        <i class="icon-trash-2"></i>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="divider"></div>
+                <div class="flex items-center justify-between flex-wrap gap10 wgp-pagination">
+                    {{ $coupons->links('pagination::bootstrap-5') }}
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+
+
+
+
+
+
+
+
+
+
+32. Admin Add New Coupon:
+-------------------------
+32. A) Edit app>http>controller>AdminController.php
+// Coupon Add
+    public function couponAdd()
+    {
+        return view('admin.coupon_add');
+    }
+
+    // Coupon Store
+    public function couponStore(Request $request)
+    {
+        $request->validate([
+            'code' => 'required|unique:coupons,code',
+            'type' => 'required',
+            'value' => 'required|numeric',
+            'cart_value' => 'required|numeric',
+            'expiry_date' => 'required|date',
+        ]);
+
+        $coupon = new Coupon();
+        $coupon->code = $request->code;
+        $coupon->type = $request->type;
+        $coupon->value = $request->value;
+        $coupon->cart_value = $request->cart_value;
+        $coupon->expiry_date = $request->expiry_date;
+        $coupon->save();
+        return redirect()->route('admin.coupons')->with('success', 'New Coupon Added Successfully!');
+    }
+
+
+
+
+
+32. B) Create Route>web.php:
+Route::get('/admin/coupon/add', [AdminController::class, 'couponAdd'])->name('admin.coupon.add');
+    Route::post('/admin/coupon/store', [AdminController::class, 'couponStore'])->name('admin.coupon.store');
+
+
+
+
+32. C) Edit Resources>views>admin>coupons.blade.php:
+<a class="tf-button style-1 w208" href="{{ route('admin.coupon.add') }}"><i class="icon-plus"></i>Add new</a>
+
+
+
+32. C) Create View: coupon_add.blade.php
+Edit Resources>views>admin>coupon_add.blade.php:
+@extends('layouts.admin')
+
+@section('content')
+    <div class="main-content-inner">
+        <div class="main-content-wrap">
+            <div class="flex items-center flex-wrap justify-between gap20 mb-27">
+                <h3>Coupon infomation</h3>
+                <ul class="breadcrumbs flex items-center flex-wrap justify-start gap10">
+                    <li>
+                        <a href="{{ route('admin.index') }}">
+                            <div class="text-tiny">Dashboard</div>
+                        </a>
+                    </li>
+                    <li>
+                        <i class="icon-chevron-right"></i>
+                    </li>
+                    <li>
+                        <a href="{{ route('admin.coupons') }}">
+                            <div class="text-tiny">Coupons</div>
+                        </a>
+                    </li>
+                    <li>
+                        <i class="icon-chevron-right"></i>
+                    </li>
+                    <li>
+                        <div class="text-tiny">New Coupon</div>
+                    </li>
+                </ul>
+            </div>
+            <div class="wg-box">
+                <form class="form-new-product form-style-1" method="POST" action="{{ route('admin.coupon.store') }}">
+                    @csrf
+                    <fieldset class="name">
+                        <div class="body-title" id="code">Coupon Code <span class="tf-color-1">*</span></div>
+                        <input class="flex-grow" type="text" placeholder="Coupon Code" name="code" tabindex="0"
+                            value="{{ old('code') }}" aria-required="true" required="">
+                    </fieldset>
+                    @error('code')
+                        <span class="alert alter-danger text-center">{{ $message }}</span>
+                    @enderror
+
+                    <fieldset class="category">
+                        <div class="body-title">Coupon Type</div>
+                        <div class="select flex-grow">
+                            <select class="" name="type">
+                                <option value="">Select</option>
+                                <option value="fixed">Fixed</option>
+                                <option value="percent">Percent</option>
+                            </select>
+                        </div>
+                    </fieldset>
+                    @error('type')
+                        <span class="alert alter-danger text-center">{{ $message }}</span>
+                    @enderror
+
+                    <fieldset class="name">
+                        <div class="body-title">Value <span class="tf-color-1">*</span></div>
+                        <input class="flex-grow" type="text" placeholder="Coupon Value" name="value" tabindex="0"
+                            value="{{ old('value') }}" aria-required="true" required="">
+                    </fieldset>
+                    @error('value')
+                        <span class="alert alter-danger text-center">{{ $message }}</span>
+                    @enderror
+
+                    <fieldset class="name">
+                        <div class="body-title">Cart Value <span class="tf-color-1">*</span></div>
+                        <input class="flex-grow" type="text" placeholder="Cart Value" name="cart_value" tabindex="0"
+                            value="{{ old('cart_value') }}" aria-required="true" required="">
+                    </fieldset>
+                    @error('cart_value')
+                        <span class="alert alter-danger text-center">{{ $message }}</span>
+                    @enderror
+
+                    <fieldset class="name">
+                        <div class="body-title">Expiry Date <span class="tf-color-1">*</span></div>
+                        <input class="flex-grow" type="date" placeholder="Expiry Date" name="expiry_date" tabindex="0"
+                            value="{{ old('expiry_date') }}" aria-required="true" required="">
+                    </fieldset>
+                    @error('expiry_date')
+                        <span class="alert alter-danger text-center">{{ $message }}</span>
+                    @enderror
+
+                    <div class="bot">
+                        <div></div>
+                        <button class="tf-button w208" type="submit">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endsection
+
+
+
+
+
+
 
 
 
