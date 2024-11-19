@@ -268,4 +268,40 @@ class AdminController extends Controller
         return redirect()->route('admin.coupons')->with('success', 'New Coupon Added Successfully!');
     }
 
+    // Coupon Edit
+    public function couponEdit($id)
+    {
+        $coupon = Coupon::find($id);
+        return view('admin.coupon_edit', compact(['coupon']));
+    }
+
+    // Coupon Update
+    public function couponUpdate(Request $request, $id)
+    {
+        $request->validate([
+            'code' => 'required|unique:coupons,code,' . $id,
+            'type' => 'required',
+            'value' => 'required|numeric',
+            'cart_value' => 'required|numeric',
+            'expiry_date' => 'required|date',
+        ]);
+
+        $coupon = Coupon::find($request->id);
+        $coupon->code = $request->code;
+        $coupon->type = $request->type;
+        $coupon->value = $request->value;
+        $coupon->cart_value = $request->cart_value;
+        $coupon->expiry_date = $request->expiry_date;
+        $coupon->save();
+        return redirect()->route('admin.coupons')->with('success', 'Coupon Updated Successfully!');
+    }
+
+    // Coupon Delete
+    public function couponDelete($id)
+    {
+        $coupon = Coupon::find($id);
+        $coupon->delete();
+        return redirect()->route('admin.coupons')->with('success', 'Coupon Deleted Successdully!');
+    }
+
 }

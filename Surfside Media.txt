@@ -8125,10 +8125,396 @@ Edit Resources>views>admin>coupon_add.blade.php:
 
 
 
+33. => Admin Edit Coupon:
+-------------------------
+33. A) Create Route>web.php:
+ Route::get('/admin/coupon/{id}/edit', [AdminController::class, 'couponEdit'])->name('admin.coupon.edit');
+    Route::post('/admin/coupon/{id}/update', [AdminController::class, 'couponUpdate'])->name('admin.coupon.update');
+
+
+
+33. B) Edit app>http>controller>AdminController.php:
+// Coupon Edit
+    public function couponEdit($id)
+    {
+        $coupon = Coupon::find($id);
+        return view('admin.coupon_edit', compact(['coupon']));
+    }
+
+    // Coupon Update
+    public function couponUpdate(Request $request, $id)
+    {
+        $request->validate([
+            'code' => 'required|unique:coupons,code,' . $id,
+            'type' => 'required',
+            'value' => 'required|numeric',
+            'cart_value' => 'required|numeric',
+            'expiry_date' => 'required|date',
+        ]);
+
+        $coupon = Coupon::find($request->id);
+        $coupon->code = $request->code;
+        $coupon->type = $request->type;
+        $coupon->value = $request->value;
+        $coupon->cart_value = $request->cart_value;
+        $coupon->expiry_date = $request->expiry_date;
+        $coupon->save();
+        return redirect()->route('admin.coupons')->with('success', 'Coupon Updated Successfully!');
+    }
+
+
+
+33. C) Edit Resources>views>admin>coupons.blade.php:
+<a href="{{ route('admin.coupon.edit', ['id' => $coupon->id]) }}">
+                                                    <div class="item edit">
+                                                        <i class="icon-edit-3"></i>
+                                                    </div>
+                                                </a>
+
+
+
+33. D) Create View: coupon_edit.blade.php
+Edit Resources>views>admin>coupon_edit.blade.php:
+@extends('layouts.admin')
+
+@section('content')
+    <div class="main-content-inner">
+        <div class="main-content-wrap">
+            <div class="flex items-center flex-wrap justify-between gap20 mb-27">
+                <h3>Coupon infomation</h3>
+                <ul class="breadcrumbs flex items-center flex-wrap justify-start gap10">
+                    <li>
+                        <a href="{{ route('admin.index') }}">
+                            <div class="text-tiny">Dashboard</div>
+                        </a>
+                    </li>
+                    <li>
+                        <i class="icon-chevron-right"></i>
+                    </li>
+                    <li>
+                        <a href="{{ route('admin.coupons') }}">
+                            <div class="text-tiny">Coupons</div>
+                        </a>
+                    </li>
+                    <li>
+                        <i class="icon-chevron-right"></i>
+                    </li>
+                    <li>
+                        <div class="text-tiny">Edit Coupon</div>
+                    </li>
+                </ul>
+            </div>
+            <div class="wg-box">
+                <form class="form-new-product form-style-1" method="POST"
+                    action="{{ route('admin.coupon.update', ['id' => $coupon->id]) }}">
+                    @csrf
+                    <fieldset class="name">
+                        <div class="body-title" id="code">Coupon Code <span class="tf-color-1">*</span></div>
+                        <input class="flex-grow" type="text" placeholder="Coupon Code" name="code" tabindex="0"
+                            value="{{ old('code', $coupon->code) }}" aria-required="true" required="">
+                    </fieldset>
+                    @error('code')
+                        <span class="alert alter-danger text-center">{{ $message }}</span>
+                    @enderror
+
+                    <fieldset class="category">
+                        <div class="body-title">Coupon Type</div>
+                        <div class="select flex-grow">
+                            <select class="" name="type">
+                                <option value="">Select</option>
+                                <option value="fixed" {{ $coupon->type == 'fixed' ? 'selected' : '' }}>Fixed</option>
+                                <option value="percent" {{ $coupon->type == 'percent' ? 'selected' : '' }}>Percent</option>
+                            </select>
+                        </div>
+                    </fieldset>
+                    @error('type')
+                        <span class="alert alter-danger text-center">{{ $message }}</span>
+                    @enderror
+
+                    <fieldset class="name">
+                        <div class="body-title">Value <span class="tf-color-1">*</span></div>
+                        <input class="flex-grow" type="text" placeholder="Coupon Value" name="value" tabindex="0"
+                            value="{{ old('value', $coupon->value) }}" aria-required="true" required="">
+                    </fieldset>
+                    @error('value')
+                        <span class="alert alter-danger text-center">{{ $message }}</span>
+                    @enderror
+
+                    <fieldset class="name">
+                        <div class="body-title">Cart Value <span class="tf-color-1">*</span></div>
+                        <input class="flex-grow" type="text" placeholder="Cart Value" name="cart_value" tabindex="0"
+                            value="{{ old('cart_value', $coupon->cart_value) }}" aria-required="true" required="">
+                    </fieldset>
+                    @error('cart_value')
+                        <span class="alert alter-danger text-center">{{ $message }}</span>
+                    @enderror
+
+                    <fieldset class="name">
+                        <div class="body-title">Expiry Date <span class="tf-color-1">*</span></div>
+                        <input class="flex-grow" type="date" placeholder="Expiry Date" name="expiry_date" tabindex="0"
+                            value="{{ old('expiry_date', $coupon->expiry_date) }}" aria-required="true" required="">
+                    </fieldset>
+                    @error('expiry_date')
+                        <span class="alert alter-danger text-center">{{ $message }}</span>
+                    @enderror
+
+                    <div class="bot">
+                        <div></div>
+                        <button class="tf-button w208" type="submit">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endsection
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+34. => Admin Delete Coupon:
+---------------------------
+34. A) Edit Resoruces>views>admin>coupons.blade.php:
+<form action="{{ route('admin.coupon.delete', ['id' => $coupon->id]) }}"
+                                                    method="POST">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <div class="item text-danger delete">
+                                                        <i class="icon-trash-2"></i>
+                                                    </div>
+                                                </form>
+
+
+34. B) Create Route>web.php:
+Route::delete('/admin/coupon/{id}/delete', [AdminController::class, 'couponDelete'])->name('admin.coupon.delete');
+
+
+
+34. C) Edit app>http>controller>AdminController.php:
+// Coupon Delete
+    public function couponDelete($id)
+    {
+        $coupon = Coupon::find($id);
+        $coupon->delete();
+        return redirect()->route('admin.coupons')->with('success', 'Coupon Deleted Successdully!');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+35. => Implement Coupon on Cart, 36. => Removing Coupon From Cart:
+------------------------------------------------------------------
+35. A) Edit app>http>controller>CartController.php:
+// Remove Item
+    public function removeItem($rowId)
+    {
+        // Remove the specific cart item
+        Cart::instance('cart')->remove($rowId);
+
+        // Check if a coupon is applied
+        if (Session::has('coupon')) {
+            // Remove coupon and discount session
+            Session::forget('coupon');
+            Session::forget('discounts');
+        }
+
+        return redirect()->back()->with('success', 'Item removed from the cart');
+    }
+
+    // Empty Cart
+    public function emptyCart()
+    {
+        // Clear the cart
+        Cart::instance('cart')->destroy();
+
+        // Check if a coupon is applied
+        if (Session::has('coupon')) {
+            // Remove coupon and discount session
+            Session::forget('coupon');
+            Session::forget('discounts');
+        }
+
+        return redirect()->back()->with('success', 'Cart has been cleared');
+    }
+
+    // Apply Coupon Code
+    public function applyCouponCode(Request $request)
+    {
+        $couponCode = $request->code; // Correct the input name to match the form input.
+        if (!empty($couponCode)) {
+            $coupon = Coupon::where('code', $couponCode)
+                ->where('expiry_date', '>=', Carbon::today())
+                ->where('cart_value', '<=', Cart::instance('cart')->subtotal())
+                ->first();
+
+            if (!$coupon) {
+                return redirect()->back()->with('error', 'Invalid or expired coupon code!');
+            }
+
+            // Store coupon details in session
+            Session::put('coupon', [
+                'code' => $coupon->code,
+                'type' => $coupon->type,
+                'value' => $coupon->value,
+                'cart_value' => $coupon->cart_value,
+            ]);
+
+            // Calculate discount and update session
+            $this->calculateDiscount();
+
+            return redirect()->back()->with('success', 'Coupon has been applied successfully!');
+        } else {
+            return redirect()->back()->with('error', 'Please provide a coupon code!');
+        }
+    }
+
+    // Calculate Discount
+    public function calculateDiscount()
+    {
+        $discount = 0;
+
+        if (Session::has('coupon')) {
+            $coupon = Session::get('coupon');
+            $cartSubtotal = Cart::instance('cart')->subtotal();
+
+            if ($coupon['type'] == 'fixed') {
+                $discount = $coupon['value'];
+            } else {
+                $discount = ($cartSubtotal * $coupon['value']) / 100;
+            }
+
+            $subTotalAfterDiscount = max(0, $cartSubtotal - $discount); // Ensure subtotal isn't negative.
+            $taxAfterDiscount = ($subTotalAfterDiscount * config('cart.tax')) / 100;
+            $totalAfterDiscount = $subTotalAfterDiscount + $taxAfterDiscount;
+
+            Session::put('discounts', [
+                'discount' => number_format($discount, 2, '.', ''),
+                'subtotal' => number_format($subTotalAfterDiscount, 2, '.', ''),
+                'tax' => number_format($taxAfterDiscount, 2, '.', ''),
+                'total' => number_format($totalAfterDiscount, 2, '.', ''),
+            ]);
+        }
+    }
+
+    // Remove Coupon Code
+    public function removeCouponCode()
+    {
+        Session::forget('coupon');
+        Session::forget('discounts');
+        return redirect()->back()->with('success', 'Coupon has veen removed!');
+    }
+
+
+
+
+
+
+
+
+
+35. B) Create Route>web.php:
+// Apply Coupon Code
+Route::post('/cart/apply-coupon', [CartController::class, 'applyCouponCode'])->name('cart.coupon.apply');
+Route::delete('/cart/remove-coupon', [CartController::class, 'removeCouponCode'])->name('cart.coupon.remove');
+
+
+
+
+35. C) Edit Resources>views>car.blade.php
+@if (!Session::has('coupon'))
+                                <form action="{{ route('cart.coupon.apply') }}" class="position-relative bg-body"
+                                    method="POST">
+                                    @csrf
+                                    <input class="form-control" type="text" name="code" placeholder="Coupon Code"
+                                        value="">
+                                    <input class="btn-link fw-medium position-absolute top-0 end-0 h-100 px-4"
+                                        type="submit" value="APPLY COUPON">
+                                </form>
+                            @else
+                                <form action="{{ route('cart.coupon.remove') }}" class="position-relative bg-body"
+                                    method="POST">
+                                    @csrf
+                                    @method('DELETE')
+                                    <input class="form-control" type="text" name="code" placeholder="Coupon Code"
+                                        value="@if (Session::has('coupon')) {{ Session::get('coupon')['code'] }} Applied! @endif">
+                                    <input class="btn-link fw-medium position-absolute top-0 end-0 h-100 px-4"
+                                        type="submit" value="REMOVE COUPON">
+                                </form>
+                            @endif
+
+// Also Edit
+<div class="shopping-cart__totals">
+                                <h3>Cart Totals</h3>
+                                @if (Session::has('discounts'))
+                                    <table class="cart-totals">
+                                        <tbody>
+                                            <tr>
+                                                <th>Subtotal</th>
+                                                <td>${{ Cart::instance('cart')->subtotal() }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Discount ({{ Session::get('coupon')['code'] }})</th>
+                                                <td>-${{ Session::get('discounts')['discount'] }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Subtotal After Discount</th>
+                                                <td>${{ Session::get('discounts')['subtotal'] }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Shipping</th>
+                                                <td>Free</td>
+                                            </tr>
+                                            <tr>
+                                                <th>VAT</th>
+                                                <td>${{ Session::get('discounts')['tax'] }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Total</th>
+                                                <td>${{ Session::get('discounts')['total'] }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                @else
+                                    <table class="cart-totals">
+                                        <tbody>
+                                            <tr>
+                                                <th>Subtotal</th>
+                                                <td>${{ Cart::instance('cart')->subtotal() }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Shipping</th>
+                                                <td>Free</td>
+                                            </tr>
+                                            <tr>
+                                                <th>VAT</th>
+                                                <td>${{ Cart::instance('cart')->tax() }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Total</th>
+                                                <td>${{ Cart::instance('cart')->total() }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                @endif
+                            </div>
 
 
 
