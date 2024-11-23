@@ -8438,7 +8438,7 @@ Route::delete('/cart/remove-coupon', [CartController::class, 'removeCouponCode']
 
 
 
-35. C) Edit Resources>views>car.blade.php
+35. C) Edit Resources>views>cart.blade.php:
 @if (!Session::has('coupon'))
                                 <form action="{{ route('cart.coupon.apply') }}" class="position-relative bg-body"
                                     method="POST">
@@ -8677,6 +8677,912 @@ protected $guarded = [];
     {
         return $this->belongsTo(Order::class);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+38. => Create Checkout Page:
+----------------------------
+38. A) Edit app>http>controller>CartController.php:
+// Checkout
+    public function checkout()
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $address = Address::where('user_id', Auth::user()->id)
+            ->where('isDefault', 1)
+            ->first();
+        return view('checkout', compact(['address']));
+    }
+
+
+
+
+38. B) Create Route>web.php:
+// Checkout
+Route::get('/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
+
+
+
+
+38. C) Edit Resources>views>cart.blade.php:
+<div class="mobile_fixed-btn_wrapper">
+                                <div class="button-wrapper container">
+                                    <a href="{{ route('cart.checkout') }}" class="btn btn-primary btn-checkout">PROCEED TO CHECKOUT</a>
+                                </div>
+                            </div>
+
+
+
+
+38. D) Create View: checkout.blade.php
+Edit Resources>views>checkout.blade.php:
+@extends('layouts.app')
+
+@section('content')
+    <main class="pt-90">
+        <div class="mb-4 pb-4"></div>
+        <section class="shop-checkout container">
+            <h2 class="page-title">Shipping and Checkout</h2>
+            <div class="checkout-steps">
+                <a href="{{ route('cart.index') }}" class="checkout-steps__item active">
+                    <span class="checkout-steps__item-number">01</span>
+                    <span class="checkout-steps__item-title">
+                        <span>Shopping Bag</span>
+                        <em>Manage Your Items List</em>
+                    </span>
+                </a>
+                <a href="javascript:void(0)" class="checkout-steps__item active">
+                    <span class="checkout-steps__item-number">02</span>
+                    <span class="checkout-steps__item-title">
+                        <span>Shipping and Checkout</span>
+                        <em>Checkout Your Items List</em>
+                    </span>
+                </a>
+                <a href="javascript:void(0)" class="checkout-steps__item">
+                    <span class="checkout-steps__item-number">03</span>
+                    <span class="checkout-steps__item-title">
+                        <span>Confirmation</span>
+                        <em>Review And Submit Your Order</em>
+                    </span>
+                </a>
+            </div>
+            <form name="checkout-form" action="">
+                <div class="checkout-form">
+                    <div class="billing-info__wrapper">
+                        <div class="row">
+                            <div class="col-6">
+                                <h4>SHIPPING DETAILS</h4>
+                            </div>
+                            <div class="col-6">
+                            </div>
+                        </div>
+
+                        @if ($address)
+                            <div class="row">
+                                <div class="col-ms-12">
+                                    <div class="my-checkout_address-list">
+                                        <div class="my-checkout_address-list-item">
+                                            <div class="my-checkout_address-item_details">
+                                                <p>{{ $address->name }}</p>
+                                                <p>{{ $address->address }}</p>
+                                                <p>{{ $address->landmark }}</p>
+                                                <p>{{ $address->city }}, {{ $address->state }}, {{ $address->country }}</p>
+                                                <p>{{ $address->zip }}</p>
+                                                <br>
+                                                <p>{{ $address->phone }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="row mt-5">
+                                <div class="col-md-6">
+                                    <div class="form-floating my-3">
+                                        <input type="text" class="form-control" name="name" required=""
+                                            value="{{ old('name') }}">
+                                        <label for="name">Full Name *</label>
+                                        @error('name')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating my-3">
+                                        <input type="text" class="form-control" name="phone" required=""
+                                            value="{{ old('phone') }}">
+                                        <label for="phone">Phone Number *</label>
+                                        @error('phone')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-floating my-3">
+                                        <input type="text" class="form-control" name="zip" required=""
+                                            value="{{ old('zip') }}">
+                                        <label for="zip">Pincode *</label>
+                                        @error('zip')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-floating mt-3 mb-3">
+                                        <input type="text" class="form-control" name="state" required=""
+                                            value="{{ old('state') }}">
+                                        <label for="state">State *</label>
+                                        @error('state')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-floating my-3">
+                                        <input type="text" class="form-control" name="city" required=""
+                                            value="{{ old('city') }}">
+                                        <label for="city">Town / City *</label>
+                                        @error('city')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating my-3">
+                                        <input type="text" class="form-control" name="address" required=""
+                                            value="{{ old('address') }}">
+                                        <label for="address">House no, Building Name *</label>
+                                        @error('address')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating my-3">
+                                        <input type="text" class="form-control" name="locality" required=""
+                                            value="{{ old('locality') }}">
+                                        <label for="locality">Road Name, Area, Colony *</label>
+                                        @error('locality')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-floating my-3">
+                                        <input type="text" class="form-control" name="landmark" required=""
+                                            value="{{ old('landmark') }}">
+                                        <label for="landmark">Landmark *</label>
+                                        @error('landmark')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                    </div>
+                    <div class="checkout__totals-wrapper">
+                        <div class="sticky-content">
+                            <div class="checkout__totals">
+                                <h3>Your Order</h3>
+                                <table class="checkout-cart-items">
+                                    <thead>
+                                        <tr>
+                                            <th>PRODUCT</th>
+                                            <th align="right">SUBTOTAL</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (Cart::instance('cart') as $item)
+                                            <tr>
+                                                <td>
+                                                    {{ $iten->name }} x {{ $iten->qty }}
+                                                </td>
+                                                <td align="right">
+                                                    {{ $iten->subtotal() }}
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                                @if (Session::has('discounts'))
+                                    <table class="checkout-totals">
+                                        <tbody>
+                                            <tr>
+                                                <th>Subtotal</th>
+                                                <td class="text-right">${{ Cart::instance('cart')->subtotal() }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Discount ({{ Session::get('coupon')['code'] }})</th>
+                                                <td class="text-right">-${{ Session::get('discounts')['discount'] }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Subtotal After Discount</th>
+                                                <td class="text-right">${{ Session::get('discounts')['subtotal'] }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Shipping</th>
+                                                <td class="text-right">Free</td>
+                                            </tr>
+                                            <tr>
+                                                <th>VAT</th>
+                                                <td class="text-right">${{ Session::get('discounts')['tax'] }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Total</th>
+                                                <td class="text-right">${{ Session::get('discounts')['total'] }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                @else
+                                    <table class="checkout-totals">
+                                        <tbody>
+                                            <tr>
+                                                <th>SUBTOTAL</th>
+                                                <td class="text-right">${{ Cart::instance('cart')->subtotal() }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>SHIPPING</th>
+                                                <td class="text-right">Free shipping</td>
+                                            </tr>
+                                            <tr>
+                                                <th>VAT</th>
+                                                <td class="text-right">${{ Cart::instance('cart')->tax() }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>TOTAL</th>
+                                                <td class="text-right">${{ Cart::instance('cart')->total() }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                @endif
+
+                            </div>
+                            <div class="checkout__payment-methods">
+                                <div class="form-check">
+                                    <input class="form-check-input form-check-input_fill" type="radio"
+                                        name="checkout_payment_method" id="checkout_payment_method_1" checked>
+                                    <label class="form-check-label" for="checkout_payment_method_1">
+                                        Direct bank transfer
+                                        <p class="option-detail">
+                                            Make your payment directly into our bank account. Please use your Order ID as
+                                            the payment
+                                            reference.Your order will not be shipped until the funds have cleared in our
+                                            account.
+                                        </p>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input form-check-input_fill" type="radio"
+                                        name="checkout_payment_method" id="checkout_payment_method_2">
+                                    <label class="form-check-label" for="checkout_payment_method_2">
+                                        Check payments
+                                        <p class="option-detail">
+                                            Phasellus sed volutpat orci. Fusce eget lore mauris vehicula elementum gravida
+                                            nec dui. Aenean
+                                            aliquam varius ipsum, non ultricies tellus sodales eu. Donec dignissim viverra
+                                            nunc, ut aliquet
+                                            magna posuere eget.
+                                        </p>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input form-check-input_fill" type="radio"
+                                        name="checkout_payment_method" id="checkout_payment_method_3">
+                                    <label class="form-check-label" for="checkout_payment_method_3">
+                                        Cash on delivery
+                                        <p class="option-detail">
+                                            Phasellus sed volutpat orci. Fusce eget lore mauris vehicula elementum gravida
+                                            nec dui. Aenean
+                                            aliquam varius ipsum, non ultricies tellus sodales eu. Donec dignissim viverra
+                                            nunc, ut aliquet
+                                            magna posuere eget.
+                                        </p>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input form-check-input_fill" type="radio"
+                                        name="checkout_payment_method" id="checkout_payment_method_4">
+                                    <label class="form-check-label" for="checkout_payment_method_4">
+                                        Paypal
+                                        <p class="option-detail">
+                                            Phasellus sed volutpat orci. Fusce eget lore mauris vehicula elementum gravida
+                                            nec dui. Aenean
+                                            aliquam varius ipsum, non ultricies tellus sodales eu. Donec dignissim viverra
+                                            nunc, ut aliquet
+                                            magna posuere eget.
+                                        </p>
+                                    </label>
+                                </div>
+                                <div class="policy-text">
+                                    Your personal data will be used to process your order, support your experience
+                                    throughout this
+                                    website, and for other purposes described in our <a href="terms.html"
+                                        target="_blank">privacy
+                                        policy</a>.
+                                </div>
+                            </div>
+                            <button class="btn btn-primary btn-checkout">PLACE ORDER</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </section>
+    </main>
+@endsection
+
+
+
+
+
+
+
+
+
+
+
+
+
+39. => Checkout and Cash on Delivery:
+-------------------------------------
+39. A) Edit app>http>controller>CartController.php:
+// Place an Order
+    public function placeAnOrder(Request $request)
+    {
+        $user_id = Auth::user()->id;
+
+        $address = Address::where('user_id', $user_id)->where('isdefault', true)->first();
+        if (!$address) {
+            $request->validate([
+                'name' => 'required|max:100',
+                'phone' => 'required|numeric|digits:10',
+                'zip' => 'required|numeric|digits:6',
+                'state' => 'required',
+                'city' => 'required',
+                'address' => 'required',
+                'locality' => 'required',
+                'landmark' => 'required',
+            ]);
+
+            $address = new Address();
+            $address->user_id = $user_id;
+            $address->name = $request->name;
+            $address->phone = $request->phone;
+            $address->zip = $request->zip;
+            $address->state = $request->state;
+            $address->city = $request->city;
+            $address->address = $request->address;
+            $address->locality = $request->locality;
+            $address->landmark = $request->landmark;
+            $address->country = '';
+            $address->isdefault = true;
+            $address->save();
+        }
+
+        $this->setAmountForCheckout();
+
+        $order = new Order();
+        $order->user_id = $user_id;
+        $order->subtotal = session()->get('checkout')['subtotal'];
+        $order->discount = session()->get('checkout')['discount'];
+        $order->tax = session()->get('checkout')['tax'];
+        $order->total = session()->get('checkout')['total'];
+        $order->name = $address->name;
+        $order->phone = $address->phone;
+        $order->locality = $address->locality;
+        $order->address = $address->address;
+        $order->city = $address->city;
+        $order->state = $address->state;
+        $order->country = $address->country;
+        $order->landmark = $address->landmark;
+        $order->zip = $address->zip;
+        $order->save();
+
+        foreach (Cart::instance('cart')->content() as $item) {
+            $orderitem = new OrderItem();
+            $orderitem->product_id = $item->id;
+            $orderitem->order_id = $order->id;
+            $orderitem->price = $item->price;
+            $orderitem->quantity = $item->qty;
+            $orderitem->save();
+        }
+
+        $transaction = new Transaction();
+        $transaction->user_id = $user_id;
+        $transaction->order_id = $order->id;
+        $transaction->mode = $request->mode;
+        $transaction->status = "pending";
+        $transaction->save();
+
+        Cart::instance('cart')->destroy();
+        session()->forget('checkout');
+        session()->forget('coupon');
+        session()->forget('discounts');
+        Session::put('order_id', $order->id);
+        return redirect()->route('cart.order.confrimation');
+    }
+
+    // Set Amount For Checkout
+    public function setAmountForCheckout()
+    {
+        if (!Cart::instance('cart')->count() > 0) {
+            session()->forget('checkout');
+            return;
+        }
+
+        if (session()->has('coupon')) {
+            session()->put('checkout', [
+                'discount' => session()->get('discounts')['discount'],
+                'subtotal' => session()->get('discounts')['subtotal'],
+                'tax' => session()->get('discounts')['tax'],
+                'total' => session()->get('discounts')['total'],
+            ]);
+        } else {
+            session()->put('checkout', [
+                'discount' => 0,
+                'subtotal' => Cart::instance('cart')->subtotal(),
+                'tax' => Cart::instance('cart')->tax(),
+                'total' => Cart::instance('cart')->total(),
+            ]);
+        }
+    }
+
+    // Order Confirmation
+    public function orderConfirmation()
+    {
+        if (Session::has('order_id')) {
+            $order = Order::find(Session::get('order_id'));
+            return view('order_confirmation', compact('order'));
+        }
+        return redirect()->route('cart.index');
+    }
+
+
+
+
+
+39. B) Create Route>web.php:
+Route::post('/place-an-order', [CartController::class, 'placeAnOrder'])->name('cart.place.an.order');
+Route::get('order-confirmation', [CartController::class, 'orderConfirmation'])->name('cart.order.confrimation');
+
+
+
+
+
+39. C) Edit Resources>views>cart.blade.php:
+@extends('layouts.app')
+
+@section('content')
+    <main class="pt-90">
+        <div class="mb-4 pb-4"></div>
+        <section class="shop-checkout container">
+            <h2 class="page-title">Shipping and Checkout</h2>
+            <div class="checkout-steps">
+                <a href="{{ route('cart.index') }}" class="checkout-steps__item active">
+                    <span class="checkout-steps__item-number">01</span>
+                    <span class="checkout-steps__item-title">
+                        <span>Shopping Bag</span>
+                        <em>Manage Your Items List</em>
+                    </span>
+                </a>
+                <a href="javascript:void(0)" class="checkout-steps__item active">
+                    <span class="checkout-steps__item-number">02</span>
+                    <span class="checkout-steps__item-title">
+                        <span>Shipping and Checkout</span>
+                        <em>Checkout Your Items List</em>
+                    </span>
+                </a>
+                <a href="javascript:void(0)" class="checkout-steps__item">
+                    <span class="checkout-steps__item-number">03</span>
+                    <span class="checkout-steps__item-title">
+                        <span>Confirmation</span>
+                        <em>Review And Submit Your Order</em>
+                    </span>
+                </a>
+            </div>
+            <form name="checkout-form" action="{{ route('cart.place.an.order') }}" method="POST">
+                @csrf
+                <div class="checkout-form">
+                    <div class="billing-info__wrapper">
+                        <div class="row">
+                            <div class="col-6">
+                                <h4>SHIPPING DETAILS</h4>
+                            </div>
+                            <div class="col-6">
+                            </div>
+                        </div>
+
+                        @if ($address)
+                            <div class="row">
+                                <div class="col-ms-12">
+                                    <div class="my-checkout_address-list">
+                                        <div class="my-checkout_address-list-item">
+                                            <div class="my-checkout_address-item_details">
+                                                <p>{{ $address->name }}</p>
+                                                <p>{{ $address->address }}</p>
+                                                <p>{{ $address->landmark }}</p>
+                                                <p>{{ $address->city }}, {{ $address->state }}, {{ $address->country }}</p>
+                                                <p>{{ $address->zip }}</p>
+                                                <br>
+                                                <p>{{ $address->phone }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="row mt-5">
+                                <div class="col-md-6">
+                                    <div class="form-floating my-3">
+                                        <input type="text" class="form-control" name="name" required=""
+                                            value="{{ old('name') }}">
+                                        <label for="name">Full Name *</label>
+                                        @error('name')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating my-3">
+                                        <input type="text" class="form-control" name="phone" required=""
+                                            value="{{ old('phone') }}">
+                                        <label for="phone">Phone Number *</label>
+                                        @error('phone')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-floating my-3">
+                                        <input type="text" class="form-control" name="zip" required=""
+                                            value="{{ old('zip') }}">
+                                        <label for="zip">Pincode *</label>
+                                        @error('zip')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-floating mt-3 mb-3">
+                                        <input type="text" class="form-control" name="state" required=""
+                                            value="{{ old('state') }}">
+                                        <label for="state">State *</label>
+                                        @error('state')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-floating my-3">
+                                        <input type="text" class="form-control" name="city" required=""
+                                            value="{{ old('city') }}">
+                                        <label for="city">Town / City *</label>
+                                        @error('city')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating my-3">
+                                        <input type="text" class="form-control" name="address" required=""
+                                            value="{{ old('address') }}">
+                                        <label for="address">House no, Building Name *</label>
+                                        @error('address')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating my-3">
+                                        <input type="text" class="form-control" name="locality" required=""
+                                            value="{{ old('locality') }}">
+                                        <label for="locality">Road Name, Area, Colony *</label>
+                                        @error('locality')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-floating my-3">
+                                        <input type="text" class="form-control" name="landmark" required=""
+                                            value="{{ old('landmark') }}">
+                                        <label for="landmark">Landmark *</label>
+                                        @error('landmark')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                    </div>
+                    <div class="checkout__totals-wrapper">
+                        <div class="sticky-content">
+                            <div class="checkout__totals">
+                                <h3>Your Order</h3>
+                                <table class="checkout-cart-items">
+                                    <thead>
+                                        <tr>
+                                            <th>PRODUCT</th>
+                                            <th align="right">SUBTOTAL</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (Cart::instance('cart') as $item)
+                                            <tr>
+                                                <td>
+                                                    {{ $iten->name }} x {{ $iten->qty }}
+                                                </td>
+                                                <td align="right">
+                                                    {{ $iten->subtotal() }}
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                                @if (Session::has('discounts'))
+                                    <table class="checkout-totals">
+                                        <tbody>
+                                            <tr>
+                                                <th>Subtotal</th>
+                                                <td class="text-right">${{ Cart::instance('cart')->subtotal() }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Discount ({{ Session::get('coupon')['code'] ?? 'N/A' }})</th>
+                                                <td class="text-right">-${{ Session::get('discounts')['discount'] }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Subtotal After Discount</th>
+                                                <td class="text-right">${{ Session::get('discounts')['subtotal'] }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Shipping</th>
+                                                <td class="text-right">Free</td>
+                                            </tr>
+                                            <tr>
+                                                <th>VAT</th>
+                                                <td class="text-right">${{ Session::get('discounts')['tax'] }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Total</th>
+                                                <td class="text-right">${{ Session::get('discounts')['total'] }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                @else
+                                    <table class="checkout-totals">
+                                        <tbody>
+                                            <tr>
+                                                <th>SUBTOTAL</th>
+                                                <td class="text-right">${{ Cart::instance('cart')->subtotal() }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>SHIPPING</th>
+                                                <td class="text-right">Free shipping</td>
+                                            </tr>
+                                            <tr>
+                                                <th>VAT</th>
+                                                <td class="text-right">${{ Cart::instance('cart')->tax() }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>TOTAL</th>
+                                                <td class="text-right">${{ Cart::instance('cart')->total() }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                @endif
+
+                            </div>
+                            <div class="checkout__payment-methods">
+
+                                <div class="form-check">
+                                    <input class="form-check-input form-check-input_fill" type="radio" name="mode"
+                                        id="mode1" value="card" required>
+                                    <label class="form-check-label" for="mode1">
+                                        Debit or Credit Cart
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input form-check-input_fill" type="radio" name="mode"
+                                        id="mode2" value="payoal" required>
+                                    <label class="form-check-label" for="mode2">
+                                        Paypal
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input form-check-input_fill" type="radio" name="mode"
+                                        id="mode3" value="cod" required>
+                                    <label class="form-check-label" for="mode3">
+                                        Cash on delivery
+                                    </label>
+                                </div>
+
+                                <div class="policy-text">
+                                    Your personal data will be used to process your order, support your experience
+                                    throughout this
+                                    website, and for other purposes described in our <a href="terms.html"
+                                        target="_blank">privacy
+                                        policy</a>.
+                                </div>
+                            </div>
+                            <button class="btn btn-primary btn-checkout">PLACE ORDER</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </section>
+    </main>
+@endsection
+
+
+
+
+
+39. D) Create View: order_confirmation.blade.php:
+Edit Resources>views>order_confirmation.blade.php:
+@extends('layouts.app')
+@section('content')
+    <main class="pt-90">
+        <div class="mb-4 pb-4"></div>
+        <section class="shop-checkout container">
+            <h2 class="page-title">Order Received</h2>
+            <div class="checkout-steps">
+                <a href="javascript:void(0)" class="checkout-steps__item active">
+                    <span class="checkout-steps__item-number">01</span>
+                    <span class="checkout-steps__item-title">
+                        <span>Shopping Bag</span>
+                        <em>Manage Your Items List</em>
+                    </span>
+                </a>
+                <a href="javascript:void(0)" class="checkout-steps__item active">
+                    <span class="checkout-steps__item-number">02</span>
+                    <span class="checkout-steps__item-title">
+                        <span>Shipping and Checkout</span>
+                        <em>Checkout Your Items List</em>
+                    </span>
+                </a>
+                <a href="javascript:void(0)" class="checkout-steps__item active">
+                    <span class="checkout-steps__item-number">03</span>
+                    <span class="checkout-steps__item-title">
+                        <span>Confirmation</span>
+                        <em>Review And Submit Your Order</em>
+                    </span>
+                </a>
+            </div>
+            <div class="order-complete">
+                <div class="order-complete__message">
+                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="40" cy="40" r="40" fill="#B9A16B" />
+                        <path
+                            d="M52.9743 35.7612C52.9743 35.3426 52.8069 34.9241 52.5056 34.6228L50.2288 32.346C49.9275 32.0446 49.5089 31.8772 49.0904 31.8772C48.6719 31.8772 48.2533 32.0446 47.952 32.346L36.9699 43.3449L32.048 38.4062C31.7467 38.1049 31.3281 37.9375 30.9096 37.9375C30.4911 37.9375 30.0725 38.1049 29.7712 38.4062L27.4944 40.683C27.1931 40.9844 27.0257 41.4029 27.0257 41.8214C27.0257 42.24 27.1931 42.6585 27.4944 42.9598L33.5547 49.0201L35.8315 51.2969C36.1328 51.5982 36.5513 51.7656 36.9699 51.7656C37.3884 51.7656 37.8069 51.5982 38.1083 51.2969L40.385 49.0201L52.5056 36.8996C52.8069 36.5982 52.9743 36.1797 52.9743 35.7612Z"
+                            fill="white" />
+                    </svg>
+                    <h3>Your order is completed!</h3>
+                    <p>Thank you. Your order has been received.</p>
+                </div>
+                <div class="order-info">
+                    <div class="order-info__item">
+                        <label>Order Number</label>
+                        <span>{{ $order->id }}</span>
+                    </div>
+                    <div class="order-info__item">
+                        <label>Date</label>
+                        <span>{{ $order->created_at }}</span>
+                    </div>
+                    <div class="order-info__item">
+                        <label>Total</label>
+                        <span>${{ $order->total }}</span>
+                    </div>
+                    <div class="order-info__item">
+                        <label>Paymetn Method</label>
+                        <span>{{ $order->transaction->mode }}</span>
+                    </div>
+                </div>
+                <div class="checkout__totals-wrapper">
+                    <div class="checkout__totals">
+                        <h3>Order Details</h3>
+                        <table class="checkout-cart-items">
+                            <thead>
+                                <tr>
+                                    <th>PRODUCT</th>
+                                    <th>SUBTOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($order->orderItems as $item)
+                                    <tr>
+                                        <td>
+                                            {{ $item->product->name }} x {{ $item->quantity }}
+                                        </td>
+                                        <td class="text-right">
+                                            {{ $item->price }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                        <table class="checkout-totals">
+                            <tbody>
+                                <tr>
+                                    <th>SUBTOTAL</th>
+                                    <td class="text-right">${{ $order->subtotal }}</td>
+                                </tr>
+                                <tr>
+                                    <th>DISCOUNT</th>
+                                    <td class="text-right">${{ $order->discount }}</td>
+                                </tr>
+                                <tr>
+                                    <th>SHIPPING</th>
+                                    <td class="text-right">Free shipping</td>
+                                </tr>
+                                <tr>
+                                    <th>VAT</th>
+                                    <td class="text-right">${{ $order->tax }}</td>
+                                </tr>
+                                <tr>
+                                    <th>TOTAL</th>
+                                    <td class="text-right">${{ $order->total }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+@endsection
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
