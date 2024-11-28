@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Coupon;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -302,6 +305,24 @@ class AdminController extends Controller
         $coupon = Coupon::find($id);
         $coupon->delete();
         return redirect()->route('admin.coupons')->with('success', 'Coupon Deleted Successdully!');
+    }
+
+    // All Order
+    public function orders()
+    {
+        $orders = Order::orderBy('created_at', 'DESC')->paginate(12);
+        return view('admin.orders', compact('orders'));
+    }
+
+    // Order Details
+    public function orderDetails($order_id)
+    {
+        $order = Order::find($order_id);
+        $orderItems = OrderItem::where('order_id', $order_id)
+            ->orderBy('id')
+            ->paginate(12);
+        $transaction = Transaction::where('order_id', $order_id)->first();
+        return view('admin.order_details', compact(['order', 'orderItems', 'transaction']));
     }
 
 }

@@ -43,6 +43,11 @@ Route::get('order-confirmation', [CartController::class, 'orderConfirmation'])->
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/account-dashboard', [UserController::class, 'index'])->name('user.index');
+
+    // Order
+    Route::get('/account-orders', [UserController::class, 'orders'])->name('user.orders');
+    Route::get('/account-orders/{order_id}/details', [UserController::class, 'orderDetails'])->name('user.order.details');
+
 });
 
 Route::middleware(['auth', AuthAdmin::class])->group(function () {
@@ -74,4 +79,8 @@ Route::middleware(['auth', AuthAdmin::class])->group(function () {
     Route::get('/admin/coupon/{id}/edit', [AdminController::class, 'couponEdit'])->name('admin.coupon.edit');
     Route::post('/admin/coupon/{id}/update', [AdminController::class, 'couponUpdate'])->name('admin.coupon.update');
     Route::delete('/admin/coupon/{id}/delete', [AdminController::class, 'couponDelete'])->name('admin.coupon.delete');
+
+    // Order
+    Route::get('/admin/orders', [AdminController::class, 'orders'])->name('admin.orders');
+    Route::get('/admin/order/{order_id}/details', [AdminController::class, 'orderDetails'])->name('admin.order.details');
 });
