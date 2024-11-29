@@ -8,6 +8,7 @@ use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Transaction;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -323,6 +324,26 @@ class AdminController extends Controller
             ->paginate(12);
         $transaction = Transaction::where('order_id', $order_id)->first();
         return view('admin.order_details', compact(['order', 'orderItems', 'transaction']));
+    }
+
+    // Update Order Status
+    public function updateOrderStatus(Request $request)
+    {
+        $order = Order::find($request->order_id);
+        $order->status = $request->order_status;
+        if ($request->order_status == 'delivered') {
+            $order->delivered_date = Carbon::now();
+        } elseif ($request->order_status == 'canceled') {
+            $order->delivered_date = Carbon::now();
+        }
+        $order->save();
+
+        if ($request->order_status == 'delivered') {
+            $transaction = Transaction::where('order_id', $request->order_id)->first();
+            $transaction->status = 'approved';
+            $transaction->save();
+        }
+        return redirect()->back()->with('success', 'Status Changed Successfully!');
     }
 
 }
