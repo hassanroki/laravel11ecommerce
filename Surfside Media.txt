@@ -11649,6 +11649,48 @@ Then, Command: php artisan db:seed --class=MonthSeeder
 
 
 
+47. => Show Categories On Home Page:
+------------------------------------
+47. A) Edit app>http>controller>HomeController.php:
+public function index()
+    {
+        $slides = Slide::where('status', 1)->get()->take(3);
+        $categories = Category::orderBy('name')->get();
+        return view('index', compact(['slides', 'categories']));
+    }
+
+
+
+47. B) Edit Resources>views>index.blade.php:
+@foreach ($categories as $category)
+                                <div class="swiper-slide">
+                                    <img loading="lazy" class="w-100 h-auto mb-3" src="{{ asset($category->image) }}"
+                                        width="124" height="124" alt="{{ $category->name }}" />
+                                    <div class="text-center">
+                                        <a href="{{ route('shop.index', ['categories' => $category->id]) }}"
+                                            class="menu-link fw-medium">{{ $category->name }}</a>
+                                    </div>
+                                </div>
+                            @endforeach
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

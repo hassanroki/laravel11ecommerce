@@ -18,7 +18,7 @@
                         <div class="overflow-hidden position-relative h-100">
                             <div class="slideshow-character position-absolute bottom-0 pos_right-center">
                                 <img loading="lazy" src="{{ asset($slide->image) }}" width="542" height="733"
-                                    alt="Woman Fashion 1"
+                                    alt="{{ $slide->title }}"
                                     class="slideshow-character__img animate animate_fade animate_btt animate_delay-9 w-auto h-auto" />
                                 <div class="character_markup type2">
                                     <p
@@ -94,63 +94,18 @@
             }
           }'>
                         <div class="swiper-wrapper">
-                            <div class="swiper-slide">
-                                <img loading="lazy" class="w-100 h-auto mb-3"
-                                    src="{{ asset('frontend/assets/images/home/demo3/category_2.png') }}" width="124"
-                                    height="124" alt="" />
-                                <div class="text-center">
-                                    <a href="#" class="menu-link fw-medium">Women<br />Pants</a>
+                            @foreach ($categories as $category)
+                                <div class="swiper-slide">
+                                    <img loading="lazy" class="w-100 h-auto mb-3" src="{{ asset($category->image) }}"
+                                        width="124" height="124" alt="{{ $category->name }}" />
+                                    <div class="text-center">
+                                        <a href="{{ route('shop.index', ['categories' => $category->id]) }}"
+                                            class="menu-link fw-medium">{{ $category->name }}</a>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="swiper-slide">
-                                <img loading="lazy" class="w-100 h-auto mb-3"
-                                    src="{{ asset('frontend/assets/images/home/demo3/category_3.png') }}" width="124"
-                                    height="124" alt="" />
-                                <div class="text-center">
-                                    <a href="#" class="menu-link fw-medium">Women<br />Clothes</a>
-                                </div>
-                            </div>
-                            <div class="swiper-slide">
-                                <img loading="lazy" class="w-100 h-auto mb-3"
-                                    src="{{ asset('frontend/assets/images/home/demo3/category_4.png') }}" width="124"
-                                    height="124" alt="" />
-                                <div class="text-center">
-                                    <a href="#" class="menu-link fw-medium">Men<br />Jeans</a>
-                                </div>
-                            </div>
-                            <div class="swiper-slide">
-                                <img loading="lazy" class="w-100 h-auto mb-3"
-                                    src="{{ asset('frontend/assets/images/home/demo3/category_5.png') }}" width="124"
-                                    height="124" alt="" />
-                                <div class="text-center">
-                                    <a href="#" class="menu-link fw-medium">Men<br />Shirts</a>
-                                </div>
-                            </div>
-                            <div class="swiper-slide">
-                                <img loading="lazy" class="w-100 h-auto mb-3"
-                                    src="{{ asset('frontend/assets/images/home/demo3/category_6.png') }}" width="124"
-                                    height="124" alt="" />
-                                <div class="text-center">
-                                    <a href="#" class="menu-link fw-medium">Men<br />Shoes</a>
-                                </div>
-                            </div>
-                            <div class="swiper-slide">
-                                <img loading="lazy" class="w-100 h-auto mb-3"
-                                    src="{{ asset('frontend/assets/images/home/demo3/category_7.png') }}" width="124"
-                                    height="124" alt="" />
-                                <div class="text-center">
-                                    <a href="#" class="menu-link fw-medium">Women<br />Dresses</a>
-                                </div>
-                            </div>
-                            <div class="swiper-slide">
-                                <img loading="lazy" class="w-100 h-auto mb-3"
-                                    src="{{ asset('frontend/assets/images/home/demo3/category_8.png') }}" width="124"
-                                    height="124" alt="" />
-                                <div class="text-center">
-                                    <a href="#" class="menu-link fw-medium">Kids<br />Tops</a>
-                                </div>
-                            </div>
-                        </div><!-- /.swiper-wrapper -->
+                            @endforeach
+
+                        </div>
                     </div><!-- /.swiper-container js-swiper-slider -->
 
                     <div
