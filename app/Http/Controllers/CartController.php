@@ -160,8 +160,8 @@ class CartController extends Controller
         if (!$address) {
             $request->validate([
                 'name' => 'required|max:100',
-                'phone' => 'required|numeric|digits:10',
-                'zip' => 'required|numeric|digits:6',
+                'phone' => 'required|numeric|digits:11',
+                'zip' => 'required|numeric|digits:4',
                 'state' => 'required',
                 'city' => 'required',
                 'address' => 'required',
