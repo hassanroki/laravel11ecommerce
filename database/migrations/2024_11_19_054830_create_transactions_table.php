@@ -19,7 +19,7 @@ return new class extends Migration
             $table->enum('status', ['pending', 'approved', 'decliend', 'refunded'])->default('pending');
             $table->timestamps();
             $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete()->restrictOnUpdate();
-            $table->foreign('product_id')->references('id')->on('products')->cascadeOnDelete()->restrictOnDelete();
+            $table->foreign('order_id')->references('id')->on('orders')->cascadeOnDelete()->restrictOnUpdate();
         });
     }
 

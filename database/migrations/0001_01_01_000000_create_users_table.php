@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('mobile')->unique();
+            $table->string('mobile')->unique()->nullable();
             $table->string('password');
             $table->string('utype')->default('USR')->comment('ATM for Admin and USR for  User or Customer');
             $table->rememberToken();

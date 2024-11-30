@@ -51,7 +51,7 @@
                                 <td colspan="5">
                                     @if ($order->status == 'delivered')
                                         <span class="badge bg-success">Delivered</span>
-                                    @elseif($order->status == 'Canceled')
+                                    @elseif($order->status == 'canceled')
                                         <span class="badge bg-danger">Canceled</span>
                                     @else
                                         <span class="badge bg-warning">Ordered</span>

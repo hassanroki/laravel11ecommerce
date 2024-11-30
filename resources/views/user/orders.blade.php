@@ -39,7 +39,15 @@
                                             <td class="text-center">${{ $order->subtotal }}</td>
                                             <td class="text-center">${{ $order->tax }}</td>
                                             <td class="text-center">${{ $order->total }}</td>
-                                            <td class="text-center">{{ $order->status }}</td>
+                                            <td class="text-center">
+                                                @if ($order->status == 'delivered')
+                                                    <span class="bg-success">Delivered</span>
+                                                @elseif($order->status == 'canceled')
+                                                    <span class="bg-danger">Canceled</span>
+                                                @else
+                                                    <span class="bg-warning">Ordered</span>
+                                                @endif
+                                            </td>
                                             <td class="text-center">{{ date('d-m-Y h:i A', strtotime($order->created_at)) }}
                                             </td>
                                             <td class="text-center">{{ $order->orderItems->count() }}</td>
@@ -65,7 +73,6 @@
                         {{ $orders->links('pagination::bootstrap-5') }}
                     </div>
                 </div>
-
             </div>
         </section>
     </main>

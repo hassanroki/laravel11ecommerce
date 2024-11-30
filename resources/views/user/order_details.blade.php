@@ -120,6 +120,7 @@
                             </div>
                         </div>
                         <div class="table-responsive">
+                            @include('_message')
                             <table class="table table-striped table-bordered">
                                 <thead>
                                     <tr>
@@ -143,7 +144,7 @@
                                         <td colspan="5">
                                             @if ($order->status == 'delivered')
                                                 <span class="badge bg-success">Delivered</span>
-                                            @elseif($order->status == 'Canceled')
+                                            @elseif($order->status == 'canceled')
                                                 <span class="badge bg-danger">Canceled</span>
                                             @else
                                                 <span class="badge bg-warning">Ordered</span>
@@ -270,9 +271,42 @@
                             </tbody>
                         </table>
                     </div>
+
+                    @if ($order->status == 'ordered')
+                    <div class="wg-box mt-5 text-right">
+                        <form action="{{ route('user.order.cancel') }}" method="POST">
+                            @csrf
+                            @method('PUT')
+                            <input type="hidden" name="order_id" value="{{ $order->id }}">
+                            <button type="button" class="btn btn-danger cancel-order">Cancel Order</button>
+                        </form>
+                    </div>
+                    @endif
                 </div>
 
             </div>
         </section>
     </main>
 @endsection
+@push('scripts')
+    <script>
+        $(function() {
+            $('.cancel-order').on('click', function(e) {
+                e.preventDefault();
+                let form = $(this).closest('form');
+                swal({
+                    title: 'Are you sure?',
+                    text: 'You want to cancel this order?',
+                    type: "warning",
+                    buttons: ['No', 'Yes'],
+                    confirmButtonColor: '#dc3545'
+                }).then(function(result) {
+                    if (result) {
+                        form.submit();
+                    }
+                });
+
+            });
+        });
+    </script>
+@endpush

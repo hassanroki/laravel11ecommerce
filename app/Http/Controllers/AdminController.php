@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Slide;
 use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -344,6 +345,119 @@ class AdminController extends Controller
             $transaction->save();
         }
         return redirect()->back()->with('success', 'Status Changed Successfully!');
+    }
+
+    // Slide
+    public function slide()
+    {
+        $slides = Slide::orderby('id', 'DESC')->paginate(12);
+        return view('admin.slide', compact('slides'));
+    }
+
+    // Slide Add
+    public function slideAdd()
+    {
+        return view('admin.slide_add');
+    }
+
+    // Slide Store
+    public function slideStore(Request $request)
+    {
+        $request->validate([
+            'tagline' => 'required',
+            'title' => 'required',
+            'subtitle' => 'required',
+            'link' => 'required',
+            'image' => 'required|mimes:png,jpg,jpeg|max:2048',
+        ]);
+
+        $slide = new Slide();
+        $slide->tagline = $request->tagline;
+        $slide->title = $request->title;
+        $slide->subtitle = $request->subtitle;
+        $slide->link = $request->link;
+        $slide->status = $request->status;
+
+        if ($request->file('image')) {
+            $manager = new ImageManager(new Driver());
+            $imgName = hexdec(uniqid()) . '.' . $request->file('image')->getClientOriginalExtension();
+            $img = $manager->read($request->file('image'));
+            $img = $img->resize(400, 690);
+
+            $img->toJpeg(80)->save(base_path('public/uploads/slides/' . $imgName));
+            $saveUrl = 'uploads/slides/' . $imgName;
+        }
+        $slide->image = $saveUrl;
+        $slide->save();
+        return redirect()->route('admin.slide')->with('success', 'Slide Created Successfully!');
+    }
+
+    // Slide Edit
+    public function slideEdit($id)
+    {
+        $slide = Slide::find($id);
+        return view('admin.slide_edit', compact('slide'));
+    }
+
+    public function slideUpdate(Request $request, $id)
+    {
+        $request->validate([
+            'tagline' => 'required',
+            'title' => 'required',
+            'subtitle' => 'required',
+            'link' => 'required',
+            'image' => 'nullable|mimes:png,jpg,jpeg|max:2048',
+        ]);
+
+        $slide = Slide::find($id);
+
+        if ($request->file('image')) {
+            // Delete previous image if exists
+            if ($slide->image && file_exists(public_path($slide->image))) {
+                @unlink(public_path($slide->image));
+            }
+
+            // Handle new image upload
+            $manager = new ImageManager(new Driver());
+            $imgName = hexdec(uniqid()) . '.' . $request->file('image')->getClientOriginalExtension();
+            $img = $manager->read($request->file('image'));
+            $img = $img->resize(400, 690);
+
+            $img->toJpeg(80)->save(public_path('uploads/slides/' . $imgName));
+            $saveUrl = 'uploads/slides/' . $imgName;
+        } else {
+            $saveUrl = $slide->image; // Retain the previous image if no new image is uploaded
+        }
+
+        $slide->tagline = $request->tagline;
+        $slide->title = $request->title;
+        $slide->subtitle = $request->subtitle;
+        $slide->link = $request->link;
+        $slide->status = $request->status;
+        $slide->image = $saveUrl;
+        $slide->save();
+
+        return redirect()->route('admin.slide')->with('success', 'Slide Updated Successfully!');
+    }
+
+    // Slide Delete
+    public function slideDelete($id)
+    {
+        $slide = Slide::find($id);
+
+        if (!$slide) {
+            return redirect()->route('admin.slide')->with('error', 'Slide not found.');
+        }
+
+        // Delete the image file if it exists
+        if ($slide->image && File::exists(public_path($slide->image))) {
+            File::delete(public_path($slide->image));
+        }
+
+        // Delete the slide record from the database
+        $slide->delete();
+
+        return redirect()->route('admin.slide')->with('success', 'Slide Deleted Successfully!');
     }
 
 }
