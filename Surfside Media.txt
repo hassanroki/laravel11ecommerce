@@ -11685,6 +11685,124 @@ public function index()
 
 
 
+48. => Show on Sale Product on Home:
+------------------------------------
+48. A) Edit app>http>controller>HomeController.php:
+public function index()
+    {
+        $slides = Slide::where('status', 1)->get()->take(3);
+        $categories = Category::orderBy('name')->get();
+        $sproducts = Product::whereNotNull('sale_price')->where('sale_price', '<>', '')->inRandomOrder()->get()->take(8);
+        return view('index', compact(['slides', 'categories', 'sproducts']));
+    }
+
+
+
+
+48. B) Edit Resources>views>index.blade.php:
+<section class="hot-deals container">
+                <h2 class="section-title text-center mb-3 pb-xl-3 mb-xl-4">Hot Deals</h2>
+                <div class="row">
+                    <div
+                        class="col-md-6 col-lg-4 col-xl-20per d-flex align-items-center flex-column justify-content-center py-4 align-items-md-start">
+                        <h2>Summer Sale</h2>
+                        <h2 class="fw-bold">Up to 60% Off</h2>
+
+                        <div class="position-relative d-flex align-items-center text-center pt-xxl-4 js-countdown mb-3"
+                            data-date="18-3-2024" data-time="06:50">
+                            <div class="day countdown-unit">
+                                <span class="countdown-num d-block"></span>
+                                <span class="countdown-word text-uppercase text-secondary">Days</span>
+                            </div>
+
+                            <div class="hour countdown-unit">
+                                <span class="countdown-num d-block"></span>
+                                <span class="countdown-word text-uppercase text-secondary">Hours</span>
+                            </div>
+
+                            <div class="min countdown-unit">
+                                <span class="countdown-num d-block"></span>
+                                <span class="countdown-word text-uppercase text-secondary">Mins</span>
+                            </div>
+
+                            <div class="sec countdown-unit">
+                                <span class="countdown-num d-block"></span>
+                                <span class="countdown-word text-uppercase text-secondary">Sec</span>
+                            </div>
+                        </div>
+
+                        <a href="{{ route('shop.index') }}" class="btn-link default-underline text-uppercase fw-medium mt-3">View
+                            All</a>
+                    </div>
+                    <div class="col-md-6 col-lg-8 col-xl-80per">
+                        <div class="position-relative">
+                            <div class="swiper-container js-swiper-slider"
+                                data-settings='{
+                "autoplay": {
+                  "delay": 5000
+                },
+                "slidesPerView": 4,
+                "slidesPerGroup": 4,
+                "effect": "none",
+                "loop": false,
+                "breakpoints": {
+                  "320": {
+                    "slidesPerView": 2,
+                    "slidesPerGroup": 2,
+                    "spaceBetween": 14
+                  },
+                  "768": {
+                    "slidesPerView": 2,
+                    "slidesPerGroup": 3,
+                    "spaceBetween": 24
+                  },
+                  "992": {
+                    "slidesPerView": 3,
+                    "slidesPerGroup": 1,
+                    "spaceBetween": 30,
+                    "pagination": false
+                  },
+                  "1200": {
+                    "slidesPerView": 4,
+                    "slidesPerGroup": 1,
+                    "spaceBetween": 30,
+                    "pagination": false
+                  }
+                }
+              }'>
+                                <div class="swiper-wrapper">
+                                    @foreach ($sproducts as $sproduct)
+                                        <div class="swiper-slide product-card product-card_style3">
+                                            <div class="pc__img-wrapper">
+                                                <a href="{{ route('product.shop.view', ['product_slug' => $sproduct->slug]) }}">
+                                                    <img loading="lazy"
+                                                        src="{{ asset($sproduct->image) }}"
+                                                        width="258" height="313" alt="{{ $sproduct->name }}"
+                                                        class="pc__img">
+                                                </a>
+                                            </div>
+
+                                            <div class="pc__info position-relative">
+                                                <h6 class="pc__title"><a href="{{ route('product.shop.view', ['product_slug' => $sproduct->slug]) }}">{{ $sproduct->name }}</a></h6>
+                                                <div class="product-card__price d-flex">
+                                                    <span class="money price text-secondary">
+                                                        @if ($sproduct->sale_price)
+                                                            <s>{{ $sproduct->regular_price }}</s>
+                                                            {{ $sproduct->sale_price }}
+                                                        @else
+                                                            {{ $sproduct->regular_price }}
+                                                        @endif
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div><!-- /.swiper-wrapper -->
+                            </div><!-- /.swiper-container js-swiper-slider -->
+                        </div><!-- /.position-relative -->
+                    </div>
+                </div>
+            </section>
 
 
 
@@ -11695,6 +11813,661 @@ public function index()
 
 
 
+
+
+
+
+49. => Show Features Product on Home Page:
+------------------------------------------
+49. A) Edit app>http>controller>HomeController.php:
+public function index()
+    {
+        $slides = Slide::where('status', 1)->get()->take(3);
+        $categories = Category::orderBy('name')->get();
+        $sproducts = Product::whereNotNull('sale_price')->where('sale_price', '<>', '')->inRandomOrder()->get()->take(8);
+        $featuresProducts = Product::where('features', 1)->get()->take(8);
+        return view('index', compact(['slides', 'categories', 'sproducts', 'featuresProducts']));
+    }
+
+
+
+
+
+49. B) Edit Resources>views>index.blade.php:
+<section class="products-grid container">
+                <h2 class="section-title text-center mb-3 pb-xl-3 mb-xl-4">Featured Products</h2>
+
+                <div class="row">
+                    @foreach ($featuresProducts as $featureProduct)
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="product-card product-card_style3 mb-3 mb-md-4 mb-xxl-5">
+                            <div class="pc__img-wrapper">
+                                <a href="{{ route('product.shop.view', ['product_slug' => $featureProduct->slug]) }}">
+                                    <img loading="lazy"
+                                        src="{{ asset($featureProduct->image) }}"
+                                        width="330" height="400" alt="{{ $featureProduct->name }}" class="pc__img">
+                                </a>
+                            </div>
+
+                            <div class="pc__info position-relative">
+                                <h6 class="pc__title"><a href="{{ route('product.shop.view', ['product_slug' => $featureProduct->slug]) }}">{{ $featureProduct->name }}</a></h6>
+                                <div class="product-card__price d-flex align-items-center">
+                                    <span class="money price text-secondary">
+                                        @if ($featureProduct->sale_price)
+                                        <s>{{ $featureProduct->regular_price }}</s>
+                                        {{ $featureProduct->sale_price }}
+                                    @else
+                                        {{ $featureProduct->regular_price }}
+                                    @endif
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div><!-- /.row -->
+
+                <div class="text-center mt-2">
+                    <a class="btn-link btn-link_lg default-underline text-uppercase fw-medium" href="{{ route('shop.index') }}">Load
+                        More</a>
+                </div>
+            </section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+50. => Create Contact Us Page:
+------------------------------
+50. A) Create Migration and Model
+Command: php artisan make:model Contact -m
+
+
+
+50. A. i) Edit Database>migrations>2024_12_08_125543_create_contacts_table.php:
+Schema::create('contacts', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email');
+            $table->string('phone');
+            $table->text('comment');
+            $table->timestamps();
+        });
+Then, Command: php artisan migrate
+
+
+
+
+50. A. ii) Edit app>models>Contact.php:
+protected $guarded = [];
+
+
+
+
+
+
+50. B) Edit app>http>controller>HomeController.php:
+ // Contact
+    public function contact()
+    {
+        return view('contact');
+    }
+
+    // Contact Store
+    public function contactStore(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|max:100',
+            'email' => 'required|email',
+            'phone' => 'required|numeric|digits:11',
+            'comment' => 'required',
+        ]);
+
+        $contact = new Contact();
+        $contact->name = $request->name;
+        $contact->email = $request->email;
+        $contact->phone = $request->phone;
+        $contact->comment = $request->comment;
+        $contact->save();
+        return redirect()->route('home.contact')->with('success', 'Message Successfully Send!');
+    }
+
+
+
+
+
+50. C) Create View: contact
+Edit Resources>views>contact.blade.php:
+@extends('layouts.app')
+
+@section('content')
+    <main class="pt-90">
+        <div class="mb-4 pb-4"></div>
+        <section class="contact-us container">
+            <div class="mw-930">
+                <h2 class="page-title">CONTACT US</h2>
+            </div>
+        </section>
+
+        <hr class="mt-2 text-secondary " />
+        <div class="mb-4 pb-4"></div>
+
+        <section class="contact-us container">
+            <div class="mw-930">
+                <div class="contact-us__form">
+                    @include('_message')
+                    <form name="contact-us-form" action="{{ route('home.contact.store') }}" class="needs-validation"
+                        novalidate="" method="POST">
+                        @csrf
+                        <h3 class="mb-5">Get In Touch</h3>
+                        <div class="form-floating my-4">
+                            <input type="text" value="{{ old('name') }}" class="form-control" id="name"
+                                name="name" placeholder="Name *" required="">
+                            <label for="name">Name *</label>
+                            @error('name')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+
+                        </div>
+
+                        <div class="form-floating my-4">
+                            <input type="email" {{ old('email') }} class="form-control" id="email" name="email"
+                                placeholder="Email address *" required="">
+                            <label for="email">Email address *</label>
+                            @error('email')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="form-floating my-4">
+                            <input type="text" {{ old('phone') }} class="form-control" id="phone" name="phone"
+                                placeholder="Phone *" required="">
+                            <label for="phone">Phone *</label>
+                            @error('phone')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="my-4">
+                            <textarea class="form-control form-control_gray" id="comment" name="comment" placeholder="Your Message *"
+                                cols="30" rows="8" required="">{{ old('comment') }}</textarea>
+                            @error('comment')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                        <div class="my-4">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+@endsection
+
+
+
+
+
+50. D) Create Route>web.php:
+Route::get('/contact-us', [HomeController::class, 'contact'])->name('home.contact');
+Route::post('/contact-us/store', [HomeController::class, 'contactStore'])->name('home.contact.store');
+
+
+
+
+50. E) Edit Resources>views>layouts>app.blade.php:
+<li class="navigation__item">
+                            <a href="{{ route('home.contact') }}" class="navigation__link">Contact</a>
+                        </li>
+
+
+
+
+
+
+50. F) Admin Side Show All Message and Delete
+
+50. F. i) Resources>views>layouts>admin.blade.php:
+<li class="menu-item">
+                                    <a href="{{ route('admin.contact') }}" class="">
+                                        <div class="icon"><i class="icon-mail"></i></div>
+                                        <div class="text">Contact</div>
+                                    </a>
+                                </li>
+
+
+
+
+50. F. ii) Create Route>web.php:
+// Contacts
+    Route::get('/admin/contact', [AdminController::class, 'contacts'])->name('admin.contact');
+    Route::delete('/admin/contact/{id}/delete', [AdminController::class, 'contactDelete'])->name('admin.contact.delete');
+
+
+
+
+
+50. F. iii) Edit app>controller>AdminController.php:
+ // Contacts
+    public function contacts()
+    {
+        $contacts = Contact::orderBy('created_at', 'DESC')->paginate(10);
+        return view('admin.contacts', compact('contacts'));
+    }
+
+    // Delete Contacts
+    public function contactDelete($id)
+    {
+        $contact = Contact::findOrFail($id);
+        $contact->delete();
+        return redirect()->route('admin.contact')->with('success', 'Message Successfully Deleted!');
+
+    }
+
+
+
+
+50. F. iv) Create View: contacts.blade.php:
+@extends('layouts.admin')
+
+@section('content')
+    <div class="main-content-inner">
+        <div class="main-content-wrap">
+            <div class="flex items-center flex-wrap justify-between gap20 mb-27">
+                <h3>All Messages</h3>
+                <ul class="breadcrumbs flex items-center flex-wrap justify-start gap10">
+                    <li>
+                        <a href="{{ route('admin.index') }}">
+                            <div class="text-tiny">Dashboard</div>
+                        </a>
+                    </li>
+                    <li>
+                        <i class="icon-chevron-right"></i>
+                    </li>
+                    <li>
+                        <div class="text-tiny">All Messages</div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="wg-box">
+                <div class="flex items-center justify-between gap10 flex-wrap">
+                    <div class="wg-filter flex-grow">
+                        <form class="form-search">
+                            <fieldset class="name">
+                                <input type="text" placeholder="Search here..." class="" name="name"
+                                    tabindex="2" value="" aria-required="true" required="">
+                            </fieldset>
+                            <div class="button-submit">
+                                <button class="" type="submit"><i class="icon-search"></i></button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+                <div class="wg-table table-all-user">
+                    <div class="table-responsive">
+                        @include('_message')
+                        <table class="table table-striped table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Message</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($contacts as $contact)
+                                    <tr>
+                                        <td>{{ $contact->id }}</td>
+                                        <td>{{ $contact->name }}</td>
+                                        <td>{{ $contact->email }}</td>
+                                        <td>{{ $contact->phone }}</td>
+                                        <td>{{ $contact->comment }}</td>
+                                        <td>{{ date('d-m-Y h:i A', strtotime($contact->created_at)) }}
+                                        <td>
+                                            <div class="list-icon-function">
+                                                <form action="{{ route('admin.contact.delete', ['id' => $contact->id]) }}"
+                                                    method="POST">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <div class="item text-danger delete">
+                                                        <i class="icon-trash-2"></i>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="divider"></div>
+                <div class="flex items-center justify-between flex-wrap gap10 wgp-pagination">
+                    {{ $contacts->links('pagination::bootstrap-5') }}
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@push('scripts')
+    <script>
+        $(function() {
+            $('.delete').on('click', function(e) {
+                e.preventDefault();
+                let form = $(this).closest('form');
+                swal({
+                    title: 'Are you sure?',
+                    text: 'You want to delete this record?',
+                    type: "warning",
+                    buttons: ['No', 'Yes'],
+                    confirmButtonColor: '#dc3545'
+                }).then(function(result) {
+                    if (result) {
+                        form.submit();
+                    }
+                });
+
+            });
+        });
+    </script>
+@endpush
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+51. => Search Product:
+----------------------
+51. A) Edit app>http>controller>HomeController.php:
+// Search Product
+    public function searchProduct(Request $request)
+    {
+        $query = $request->input('query');
+        $results = Product::where('name', 'LIKE', "%$query%") // Corrected SQL LIKE syntax
+            ->select('id', 'name', 'slug', 'image') // Fetch only the necessary fields
+            ->take(8) // Limit results to 8
+            ->get();
+
+        return response()->json($results);
+    }
+
+
+
+
+51. B) Create Route>web.php:
+// Search Product
+Route::get('/search', [HomeController::class, 'searchProduct'])->name('home.search');
+
+
+
+
+
+51. C) Edit Resources>views>layouts>app.blade.php
+// Style
+ .product-item {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 15px;
+            transition: all .3s ease;
+            padding-right: 5px;
+        }
+
+        .product-item .image {
+            display: flex;
+            align-content: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            gap: 10px;
+            flex-shrink: 0;
+            padding: 5px;
+            border-radius: 10px;
+            background: #EFF4f8;
+        }
+
+        #boxContentSearch {
+            list-style: none;
+        }
+
+        #boxContentSearch .product-item {
+            margin-bottom: 10px;
+        }
+
+
+// Also Edit
+<div class="search-popup js-hidden-content">
+                            <form action="" method="GET" class="search-field container">
+                                <p class="text-uppercase text-secondary fw-medium mb-4">What are you looking for?</p>
+                                <div class="position-relative">
+                                    <input class="search-field__input search-popup__input w-100 fw-medium"
+                                        type="text" name="search-keyword" id="searchInput"
+                                        placeholder="Search products" />
+                                    <button class="btn-icon search-popup__submit" type="submit">
+                                        <svg class="d-block" width="20" height="20" viewBox="0 0 20 20"
+                                            fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <use href="#icon_search" />
+                                        </svg>
+                                    </button>
+                                    <button class="btn-icon btn-close-lg search-popup__reset" type="reset"></button>
+                                </div>
+
+                                <div class="search-popup__results">
+                                    <ul class="" id="boxContentSearch">
+
+                                    </ul>
+                                </div>
+                            </form>
+                        </div>
+
+
+
+
+// Also Edit JavaScript
+<script>
+        $(function() {
+            $("#searchInput").on("keyup", function() {
+                let searchQuery = $(this).val().trim();
+                if (searchQuery.length > 2) {
+                    $.ajax({
+                        type: "GET",
+                        url: "{{ route('home.search') }}",
+                        data: {
+                            query: searchQuery
+                        },
+                        dataType: "json",
+                        success: function(data) {
+                            $("#boxContentSearch").html("");
+                            if (data.length > 0) {
+                                $.each(data, function(index, item) {
+                                    let url =
+                                        "{{ route('product.shop.view', ['product_slug' => ':slug']) }}";
+                                    url = url.replace(':slug', item.slug);
+
+                                    $("#boxContentSearch").append(`
+                                <li>
+                                    <ul>
+                                        <li class="product-item gap14 mb-10">
+                                            <div class="image no-bg">
+                                                <img src="${item.image}" alt="${item.name}">
+                                            </div>
+                                            <div class="flex items-center justify-between gp20 flex-grow">
+                                                <div class="name">
+                                                    <a href="${url}" class="body-text btn">${item.name}</a>
+                                                </div>
+                                            </div>
+                                        </li>
+
+                                    </ul>
+                                </li>
+                            `);
+                                });
+                            } else {
+                                $("#boxContentSearch").append("<li>No products found</li>");
+                            }
+                        },
+                        error: function(xhr) {
+                            console.error("Error fetching search results", xhr);
+                        }
+                    });
+                } else {
+                    $("#boxContentSearch").html(""); // Clear results for short queries
+                }
+            });
+        });
+    </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+52. Admin Search Product:
+-------------------------
+52. A) Edit app>http>controller>AdminController.php:
+// Search Product
+    public function searchProduct(Request $request)
+    {
+        $query = $request->input('query');
+        $results = Product::where('name', 'LIKE', "%$query%") // Corrected SQL LIKE syntax
+            ->select('id', 'name', 'slug', 'image') // Fetch only the necessary fields
+            ->take(8) // Limit results to 8
+            ->get();
+
+        return response()->json($results);
+    }
+
+
+
+
+
+
+
+
+52. B) Create Route>web.php:
+// Admin Search Product
+    Route::get('/admin/search', [AdminController::class, 'searchProduct'])->name('admin.search');
+
+
+
+
+
+
+
+52. C) Edit Resources>views>layouts>admin.blade.php:
+<form class="form-search flex-grow">
+                                    <fieldset class="name">
+                                        <input type="text" id="searchInput" placeholder="Search here..."
+                                            class="show-search" name="name" tabindex="2" value=""
+                                            aria-required="true" required="" autocomplete="off">
+                                    </fieldset>
+                                    <div class="button-submit">
+                                        <button class="" type="submit"><i class="icon-search"></i></button>
+                                    </div>
+                                    <div class="box-content-search">
+                                        <ul id="boxContentSearch">
+
+                                        </ul>
+                                    </div>
+                                </form>
+
+
+
+
+
+// Also Edit
+<script>
+        $(function() {
+            $("#searchInput").on("keyup", function() {
+                let searchQuery = $(this).val().trim();
+                if (searchQuery.length > 2) {
+                    $.ajax({
+                        type: "GET",
+                        url: "{{ route('admin.search') }}",
+                        data: {
+                            query: searchQuery
+                        },
+                        dataType: "json",
+                        success: function(data) {
+                            $("#boxContentSearch").html("");
+                            if (data.length > 0) {
+                                $.each(data, function(index, item) {
+                                    let url =
+                                        "{{ route('products.edit', ['product' => ':product']) }}";
+                                    url = url.replace(':product', item.id);
+
+                                    $("#boxContentSearch").append(`
+                                <li>
+                                    <ul>
+                                        <li class="product-item gap14 mb-10">
+                                            <div class="image no-bg">
+                                                <img src="${item.image}" alt="${item.name}">
+                                            </div>
+                                            <div class="flex items-center justify-between gp20 flex-grow">
+                                                <div class="name">
+                                                    <a href="${url}" class="body-text btn">${item.name}</a>
+                                                </div>
+                                            </div>
+                                        </li>
+
+                                    </ul>
+                                </li>
+                            `);
+                                });
+                            } else {
+                                $("#boxContentSearch").append("<li>No products found</li>");
+                            }
+                        },
+                        error: function(xhr) {
+                            console.error("Error fetching search results", xhr);
+                        }
+                    });
+                } else {
+                    $("#boxContentSearch").html(""); // Clear results for short queries
+                }
+            });
+        });
+    </script>
 
 
 

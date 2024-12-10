@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Contact;
 use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Product;
 use App\Models\Slide;
 use App\Models\Transaction;
 use Carbon\Carbon;
@@ -503,4 +505,30 @@ class AdminController extends Controller
         return redirect()->route('admin.slide')->with('success', 'Slide Deleted Successfully!');
     }
 
+    // Contacts
+    public function contacts()
+    {
+        $contacts = Contact::orderBy('created_at', 'DESC')->paginate(10);
+        return view('admin.contacts', compact('contacts'));
+    }
+
+    // Delete Contacts
+    public function contactDelete($id)
+    {
+        $contact = Contact::findOrFail($id);
+        $contact->delete();
+        return redirect()->route('admin.contact')->with('success', 'Message Successfully Deleted!');
+    }
+
+    // Admin Search Product
+    public function searchProduct(Request $request)
+    {
+        $query = $request->input('query');
+        $results = Product::where('name', 'LIKE', "%$query%") // Corrected SQL LIKE syntax
+            ->select('id', 'name', 'slug', 'image') // Fetch only the necessary fields
+            ->take(8) // Limit results to 8
+            ->get();
+
+        return response()->json($results);
+    }
 }

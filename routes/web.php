@@ -41,6 +41,12 @@ Route::get('/checkout', [CartController::class, 'checkout'])->name('cart.checkou
 Route::post('/place-an-order', [CartController::class, 'placeAnOrder'])->name('cart.place.an.order');
 Route::get('order-confirmation', [CartController::class, 'orderConfirmation'])->name('cart.order.confrimation');
 
+Route::get('/contact-us', [HomeController::class, 'contact'])->name('home.contact');
+Route::post('/contact-us/store', [HomeController::class, 'contactStore'])->name('home.contact.store');
+
+// Search Product
+Route::get('/search', [HomeController::class, 'searchProduct'])->name('home.search');
+
 Route::middleware(['auth'])->group(function () {
     Route::get('/account-dashboard', [UserController::class, 'index'])->name('user.index');
 
@@ -48,7 +54,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/account-orders', [UserController::class, 'orders'])->name('user.orders');
     Route::get('/account-orders/{order_id}/details', [UserController::class, 'orderDetails'])->name('user.order.details');
     Route::put('/account-orders/cancel-order', [UserController::class, 'orderCancel'])->name('user.order.cancel');
-
 });
 
 Route::middleware(['auth', AuthAdmin::class])->group(function () {
@@ -93,4 +98,11 @@ Route::middleware(['auth', AuthAdmin::class])->group(function () {
     Route::get('/admin/slides/{id}/edit', [AdminController::class, 'slideEdit'])->name('admin.slide.edit');
     Route::post('/admin/slides/{id}/edit', [AdminController::class, 'slideUpdate'])->name('admin.slide.update');
     Route::delete('/admin/slides/{id}/delete', [AdminController::class, 'slideDelete'])->name('admin.slide.delete');
+
+    // Contacts
+    Route::get('/admin/contact', [AdminController::class, 'contacts'])->name('admin.contact');
+    Route::delete('/admin/contact/{id}/delete', [AdminController::class, 'contactDelete'])->name('admin.contact.delete');
+
+    // Admin Search Product
+    Route::get('/admin/search', [AdminController::class, 'searchProduct'])->name('admin.search');
 });

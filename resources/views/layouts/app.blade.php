@@ -13,7 +13,7 @@
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <meta name="author" content="surfside media" />
     <link rel="stylesheet" href="{{ asset('font/fonts.css') }}">
-        <link rel="stylesheet" href="{{ asset('icon/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('icon/style.css') }}">
     <link rel="shortcut icon" href="{{ asset('frontend/assets/images/favicon.ico') }}" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.gstatic.com/">
     <link
@@ -265,6 +265,36 @@
         .logo__image {
             max-width: 220px;
         }
+
+        .product-item {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 15px;
+            transition: all .3s ease;
+            padding-right: 5px;
+        }
+
+        .product-item .image {
+            display: flex;
+            align-content: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            gap: 10px;
+            flex-shrink: 0;
+            padding: 5px;
+            border-radius: 10px;
+            background: #EFF4f8;
+        }
+
+        #boxContentSearch {
+            list-style: none;
+        }
+
+        #boxContentSearch .product-item {
+            margin-bottom: 10px;
+        }
     </style>
 
     <div class="header-mobile header_sticky">
@@ -331,7 +361,7 @@
                             <a href="about.html" class="navigation__link">About</a>
                         </li>
                         <li class="navigation__item">
-                            <a href="contact.html" class="navigation__link">Contact</a>
+                            <a href="{{ route('home.contact') }}" class="navigation__link">Contact</a>
                         </li>
                     </ul>
                 </div>
@@ -420,7 +450,7 @@
                             <a href="about.html" class="navigation__link">About</a>
                         </li>
                         <li class="navigation__item">
-                            <a href="contact.html" class="navigation__link">Contact</a>
+                            <a href="{{ route('home.contact') }}" class="navigation__link">Contact</a>
                         </li>
                     </ul>
                 </nav>
@@ -438,11 +468,12 @@
                         </div>
 
                         <div class="search-popup js-hidden-content">
-                            <form action="#" method="GET" class="search-field container">
+                            <form action="" method="GET" class="search-field container">
                                 <p class="text-uppercase text-secondary fw-medium mb-4">What are you looking for?</p>
                                 <div class="position-relative">
                                     <input class="search-field__input search-popup__input w-100 fw-medium"
-                                        type="text" name="search-keyword" placeholder="Search products" />
+                                        type="text" name="search-keyword" id="searchInput"
+                                        placeholder="Search products" />
                                     <button class="btn-icon search-popup__submit" type="submit">
                                         <svg class="d-block" width="20" height="20" viewBox="0 0 20 20"
                                             fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -453,28 +484,13 @@
                                 </div>
 
                                 <div class="search-popup__results">
-                                    <div class="sub-menu search-suggestion">
-                                        <h6 class="sub-menu__title fs-base">Quicklinks</h6>
-                                        <ul class="sub-menu__list list-unstyled">
-                                            <li class="sub-menu__item"><a href="shop2.html"
-                                                    class="menu-link menu-link_us-s">New Arrivals</a>
-                                            </li>
-                                            <li class="sub-menu__item"><a href="#"
-                                                    class="menu-link menu-link_us-s">Dresses</a></li>
-                                            <li class="sub-menu__item"><a href="shop3.html"
-                                                    class="menu-link menu-link_us-s">Accessories</a>
-                                            </li>
-                                            <li class="sub-menu__item"><a href="#"
-                                                    class="menu-link menu-link_us-s">Footwear</a></li>
-                                            <li class="sub-menu__item"><a href="#"
-                                                    class="menu-link menu-link_us-s">Sweatshirt</a></li>
-                                        </ul>
-                                    </div>
+                                    <ul class="" id="boxContentSearch">
 
-                                    <div class="search-result row row-cols-5"></div>
+                                    </ul>
                                 </div>
                             </form>
                         </div>
+
                     </div>
 
                     @guest
@@ -603,7 +619,8 @@
                         </li>
                         <li class="sub-menu__item"><a href="blog_list1.html"
                                 class="menu-link menu-link_us-s">Blog</a></li>
-                        <li class="sub-menu__item"><a href="contact-2.html" class="menu-link menu-link_us-s">Contact
+                        <li class="sub-menu__item"><a href="{{ route('home.contact') }}"
+                                class="menu-link menu-link_us-s">Contact
                                 Us</a></li>
                     </ul>
                 </div>
@@ -722,6 +739,58 @@
     <script src="{{ asset('js/sweetalert.min.js') }}"></script>
     <script src="{{ asset('frontend/assets/js/plugins/swiper.min.js') }}"></script>
     <script src="{{ asset('frontend/assets/js/plugins/countdown.js') }}"></script>
+    <script>
+        $(function() {
+            $("#searchInput").on("keyup", function() {
+                let searchQuery = $(this).val().trim();
+                if (searchQuery.length > 2) {
+                    $.ajax({
+                        type: "GET",
+                        url: "{{ route('home.search') }}",
+                        data: {
+                            query: searchQuery
+                        },
+                        dataType: "json",
+                        success: function(data) {
+                            $("#boxContentSearch").html("");
+                            if (data.length > 0) {
+                                $.each(data, function(index, item) {
+                                    let url =
+                                        "{{ route('product.shop.view', ['product_slug' => ':slug']) }}";
+                                    url = url.replace(':slug', item.slug);
+
+                                    $("#boxContentSearch").append(`
+                                <li>
+                                    <ul>
+                                        <li class="product-item gap14 mb-10">
+                                            <div class="image no-bg">
+                                                <img src="${item.image}" alt="${item.name}">
+                                            </div>
+                                            <div class="flex items-center justify-between gp20 flex-grow">
+                                                <div class="name">
+                                                    <a href="${url}" class="body-text btn">${item.name}</a>
+                                                </div>
+                                            </div>
+                                        </li>
+
+                                    </ul>
+                                </li>
+                            `);
+                                });
+                            } else {
+                                $("#boxContentSearch").append("<li>No products found</li>");
+                            }
+                        },
+                        error: function(xhr) {
+                            console.error("Error fetching search results", xhr);
+                        }
+                    });
+                } else {
+                    $("#boxContentSearch").html(""); // Clear results for short queries
+                }
+            });
+        });
+    </script>
     <script src="{{ asset('frontend/assets/js/theme.js') }}"></script>
 
     @stack('scripts')
