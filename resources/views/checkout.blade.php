@@ -174,15 +174,15 @@
                                         <tbody>
                                             <tr>
                                                 <th>Subtotal</th>
-                                                <td class="text-right">${{ Cart::instance('cart')->subtotal() }}</td>
+                                                <td class="text-right">৳{{ Cart::instance('cart')->subtotal() }}</td>
                                             </tr>
                                             <tr>
                                                 <th>Discount ({{ Session::get('coupon')['code'] ?? 'N/A' }})</th>
-                                                <td class="text-right">-${{ Session::get('discounts')['discount'] }}</td>
+                                                <td class="text-right">-৳{{ Session::get('discounts')['discount'] }}</td>
                                             </tr>
                                             <tr>
                                                 <th>Subtotal After Discount</th>
-                                                <td class="text-right">${{ Session::get('discounts')['subtotal'] }}</td>
+                                                <td class="text-right">৳{{ Session::get('discounts')['subtotal'] }}</td>
                                             </tr>
                                             <tr>
                                                 <th>Shipping</th>
@@ -190,11 +190,11 @@
                                             </tr>
                                             <tr>
                                                 <th>VAT</th>
-                                                <td class="text-right">${{ Session::get('discounts')['tax'] }}</td>
+                                                <td class="text-right">৳{{ Session::get('discounts')['tax'] }}</td>
                                             </tr>
                                             <tr>
                                                 <th>Total</th>
-                                                <td class="text-right">${{ Session::get('discounts')['total'] }}</td>
+                                                <td class="text-right">৳{{ Session::get('discounts')['total'] }}</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -203,7 +203,7 @@
                                         <tbody>
                                             <tr>
                                                 <th>SUBTOTAL</th>
-                                                <td class="text-right">${{ Cart::instance('cart')->subtotal() }}</td>
+                                                <td class="text-right">৳{{ Cart::instance('cart')->subtotal() }}</td>
                                             </tr>
                                             <tr>
                                                 <th>SHIPPING</th>
@@ -211,11 +211,11 @@
                                             </tr>
                                             <tr>
                                                 <th>VAT</th>
-                                                <td class="text-right">${{ Cart::instance('cart')->tax() }}</td>
+                                                <td class="text-right">৳{{ Cart::instance('cart')->tax() }}</td>
                                             </tr>
                                             <tr>
                                                 <th>TOTAL</th>
-                                                <td class="text-right">${{ Cart::instance('cart')->total() }}</td>
+                                                <td class="text-right">৳{{ Cart::instance('cart')->total() }}</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -224,20 +224,20 @@
                             </div>
                             <div class="checkout__payment-methods">
 
-                                <div class="form-check">
+                                {{--  <div class="form-check">
                                     <input class="form-check-input form-check-input_fill" type="radio" name="mode"
                                         id="mode1" value="card" required>
                                     <label class="form-check-label" for="mode1">
                                         Debit or Credit Cart
                                     </label>
-                                </div>
-                                <div class="form-check">
+                                </div>  --}}
+                                {{--  <div class="form-check">
                                     <input class="form-check-input form-check-input_fill" type="radio" name="mode"
                                         id="mode2" value="payoal" required>
                                     <label class="form-check-label" for="mode2">
                                         Paypal
                                     </label>
-                                </div>
+                                </div>  --}}
                                 <div class="form-check">
                                     <input class="form-check-input form-check-input_fill" type="radio" name="mode"
                                         id="mode3" value="cod" required>
@@ -262,3 +262,23 @@
         </section>
     </main>
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const codOption = document.getElementById('mode3'); // Cash on delivery radio button
+            const placeOrderBtn = document.querySelector('.btn-checkout'); // Place Order button
+
+            // Initially disable the button
+            placeOrderBtn.disabled = true;
+
+            // Listen for any change in payment mode
+            document.querySelectorAll('input[name="mode"]').forEach((input) => {
+                input.addEventListener('change', function() {
+                    // Enable only if COD selected
+                    placeOrderBtn.disabled = this.value !== 'cod';
+                });
+            });
+        });
+    </script>
+@endpush

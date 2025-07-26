@@ -380,7 +380,7 @@
 
                 <ul class="container social-links list-unstyled d-flex flex-wrap mb-0">
                     <li>
-                        <a href="#" class="footer__social-link d-block ps-0">
+                        <a href="https://www.facebook.com/rokibulhassancse/" target="_blank" class="footer__social-link d-block ps-0">
                             <svg class="svg-icon svg-icon_facebook" width="9" height="15" viewBox="0 0 9 15"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <use href="#icon_facebook" />
@@ -565,7 +565,7 @@
 
                     <ul class="social-links list-unstyled d-flex flex-wrap mb-0">
                         <li>
-                            <a href="#" class="footer__social-link d-block">
+                            <a href="https://www.facebook.com/rokibulhassancse/" target="_blank" class="footer__social-link d-block">
                                 <svg class="svg-icon svg-icon_facebook" width="9" height="15"
                                     viewBox="0 0 9 15" xmlns="http://www.w3.org/2000/svg">
                                     <use href="#icon_facebook" />
@@ -679,10 +679,10 @@
 
         <div class="footer-bottom">
             <div class="container d-md-flex align-items-center">
-                <span class="footer-copyright me-auto">©2024 Surfside Media</span>
+                <span class="footer-copyright me-auto">{{ date('Y') }} Lara Soft BD</span>
                 <div class="footer-settings d-md-flex align-items-center">
-                    <a href="privacy-policy.html">Privacy Policy</a> &nbsp;|&nbsp; <a
-                        href="terms-conditions.html">Terms &amp;
+                    <a href="{{ route('home.privacy.policy') }}">Privacy Policy</a> &nbsp;|&nbsp; <a
+                        href="{{ route('home.terms.conditions') }}">Terms &amp;
                         Conditions</a>
                 </div>
             </div>

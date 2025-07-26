@@ -212,10 +212,10 @@
                                                 <div class="product-card__price d-flex">
                                                     <span class="money price text-secondary">
                                                         @if ($sproduct->sale_price)
-                                                            <s>{{ $sproduct->regular_price }}</s>
-                                                            {{ $sproduct->sale_price }}
+                                                            <s>৳{{ $sproduct->regular_price }}</s>
+                                                            ৳{{ $sproduct->sale_price }}
                                                         @else
-                                                            {{ $sproduct->regular_price }}
+                                                            ৳{{ $sproduct->regular_price }}
                                                         @endif
                                                     </span>
                                                 </div>
@@ -239,7 +239,7 @@
                                 src="{{ asset('frontend/assets/images/home/demo3/category_9.jpg') }}" width="690"
                                 height="665" alt="" />
                             <div class="category-banner__item-mark">
-                                Starting at $19
+                                Starting at ৳{{ $minSalePrice }}
                             </div>
                             <div class="category-banner__item-content">
                                 <h3 class="mb-0">Blazers</h3>
@@ -254,7 +254,7 @@
                                 src="{{ asset('frontend/assets/images/home/demo3/category_10.jpg') }}" width="690"
                                 height="665" alt="" />
                             <div class="category-banner__item-mark">
-                                Starting at $19
+                                Starting at ৳{{ $minSalePrice }}
                             </div>
                             <div class="category-banner__item-content">
                                 <h3 class="mb-0">Sportswear</h3>
@@ -288,8 +288,8 @@
                                 <div class="product-card__price d-flex align-items-center">
                                     <span class="money price text-secondary">
                                         @if ($featureProduct->sale_price)
-                                        <s>{{ $featureProduct->regular_price }}</s>
-                                        {{ $featureProduct->sale_price }}
+                                        <s>৳{{ $featureProduct->regular_price }}</s>
+                                        ৳{{ $featureProduct->sale_price }}
                                     @else
                                         {{ $featureProduct->regular_price }}
                                     @endif

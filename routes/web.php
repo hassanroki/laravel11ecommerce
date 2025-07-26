@@ -41,6 +41,12 @@ Route::get('/checkout', [CartController::class, 'checkout'])->name('cart.checkou
 Route::post('/place-an-order', [CartController::class, 'placeAnOrder'])->name('cart.place.an.order');
 Route::get('order-confirmation', [CartController::class, 'orderConfirmation'])->name('cart.order.confrimation');
 
+// privacy-policy
+Route::get('/privacy-policy', [HomeController::class, 'privacyPolicy'])->name('home.privacy.policy');
+
+// terms-conditions
+Route::get('/terms-conditions', [HomeController::class, 'termsConditions'])->name('home.terms.conditions');
+
 Route::get('/contact-us', [HomeController::class, 'contact'])->name('home.contact');
 Route::post('/contact-us/store', [HomeController::class, 'contactStore'])->name('home.contact.store');
 

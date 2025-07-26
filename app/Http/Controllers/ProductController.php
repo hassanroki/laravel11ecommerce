@@ -93,7 +93,7 @@ class ProductController extends Controller
             'features' => $request->has('features'),
             'quantity' => $request->quantity,
             'image' => $saveUrl,
-            'images' => json_encode($imagePaths), // Store array as JSON
+            'images' => json_encode($imagePaths),
             'category_id' => $request->category_id,
             'brand_id' => $request->brand_id,
         ]);

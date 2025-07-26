@@ -64,7 +64,7 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="shopping-cart__product-price">${{ $item->price }}</span>
+                                            <span class="shopping-cart__product-price">৳{{ $item->price }}</span>
                                         </td>
                                         <td>
                                             <div class="qty-control position-relative">
@@ -153,15 +153,15 @@
                                         <tbody>
                                             <tr>
                                                 <th>Subtotal</th>
-                                                <td class="text-right">${{ Cart::instance('cart')->subtotal() }}</td>
+                                                <td class="text-right">৳{{ Cart::instance('cart')->subtotal() }}</td>
                                             </tr>
                                             <tr>
                                                 <th>Discount ({{ Session::get('coupon')['code'] }})</th>
-                                                <td class="text-right">-${{ Session::get('discounts')['discount'] }}</td>
+                                                <td class="text-right">-৳{{ Session::get('discounts')['discount'] }}</td>
                                             </tr>
                                             <tr>
                                                 <th>Subtotal After Discount</th>
-                                                <td class="text-right">${{ Session::get('discounts')['subtotal'] }}</td>
+                                                <td class="text-right">৳{{ Session::get('discounts')['subtotal'] }}</td>
                                             </tr>
                                             <tr>
                                                 <th>Shipping</th>
@@ -169,11 +169,11 @@
                                             </tr>
                                             <tr>
                                                 <th>VAT</th>
-                                                <td class="text-right">${{ Session::get('discounts')['tax'] }}</td>
+                                                <td class="text-right">৳{{ Session::get('discounts')['tax'] }}</td>
                                             </tr>
                                             <tr>
                                                 <th>Total</th>
-                                                <td class="text-right">${{ Session::get('discounts')['total'] }}</td>
+                                                <td class="text-right">৳{{ Session::get('discounts')['total'] }}</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -182,7 +182,7 @@
                                         <tbody>
                                             <tr>
                                                 <th>SUBTOTAL</th>
-                                                <td class="text-right">${{ Cart::instance('cart')->subtotal() }}</td>
+                                                <td class="text-right">৳{{ Cart::instance('cart')->subtotal() }}</td>
                                             </tr>
                                             <tr>
                                                 <th>SHIPPING</th>
@@ -190,11 +190,11 @@
                                             </tr>
                                             <tr>
                                                 <th>VAT</th>
-                                                <td class="text-right">${{ Cart::instance('cart')->tax() }}</td>
+                                                <td class="text-right">৳{{ Cart::instance('cart')->tax() }}</td>
                                             </tr>
                                             <tr>
                                                 <th>TOTAL</th>
-                                                <td class="text-right">${{ Cart::instance('cart')->total() }}</td>
+                                                <td class="text-right">৳{{ Cart::instance('cart')->total() }}</td>
                                             </tr>
                                         </tbody>
                                     </table>
