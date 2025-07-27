@@ -5,6 +5,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ShopController;
+use App\Http\Controllers\TaxSettingController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WishListController;
 use App\Http\Middleware\AuthAdmin;
@@ -83,6 +84,11 @@ Route::middleware(['auth', AuthAdmin::class])->group(function () {
 
     // Products
     Route::resource('/admin/products', ProductController::class);
+
+    // Vat
+    Route::get('/admin/tax-settings', [TaxSettingController::class, 'index'])->name('tax-settings.index');
+    Route::get('/admin/tax-settings/{id}/edit', [TaxSettingController::class, 'edit'])->name('tax-settings.edit');
+    Route::put('/admin/tax-settings/{id}', [TaxSettingController::class, 'update'])->name('tax-settings.update');
 
     // Coupons
     Route::get('/admin/coupons', [AdminController::class, 'coupons'])->name('admin.coupons');

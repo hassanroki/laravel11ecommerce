@@ -78,6 +78,11 @@
                                                 <div class="text">Products</div>
                                             </a>
                                         </li>
+                                        <li class="sub-menu-item">
+                                            <a href="{{ route('tax-settings.index') }}" class="">
+                                                <div class="text">Vat</div>
+                                            </a>
+                                        </li>
                                     </ul>
                                 </li>
                                 <li class="menu-item has-children">
